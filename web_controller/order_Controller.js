@@ -9,6 +9,7 @@ const {
   insert_checkOut,
   checkBuyerExistence,
   get_checkOut,
+  getChekOutById,
 } = require("../web_models/orderModels");
 
 const baseurl = config.base_url;
@@ -144,10 +145,12 @@ exports.order_checkout = async (req, res) => {
       });
     }
 
-    const { shipping, vat, total } = req.body;
+    const { product_id, cart_id, shipping, vat, total } = req.body;
 
     const checkOutData = {
       buyer_id: userId,
+      product_id,
+      cart_id,
       shipping,
       vat,
       total,
@@ -173,4 +176,135 @@ exports.order_checkout = async (req, res) => {
   }
 };
 
+
+
+exports.get_checkout = async (req, res) => {
+  try {
+    const userID = req?.user;
+
+    const allProduct = await getChekOutById(userID);
+
+    if (allProduct && allProduct.length > 0) {
+      const updatedCombinedCart = allProduct.map((item) => {
+        return {
+          order_checkout: {
+            // Include other order_checkout fields as needed
+            id: item.id,
+            shipping: item.shipping,
+            vat: item.vat,
+            total: item.total,
+          },
+
+          cart: {
+            cart_id: item.id,
+            buyer_id: item.buyer_id,
+            cart_quantity: item.cart_quantity,
+            cart_price: item.cart_price,
+            total: item.cart_quantity * item.cart_price,
+          },
+
+          product_brands: {
+            product_id: item.product_id,
+            brand: item.product_brands,
+          },
+        };
+      });
+
+      return res.json({
+        message: "All product details",
+        status: 200,
+        success: true,
+        checkout_details: updatedCombinedCart,
+      });
+    } else {
+      return res.json({
+        message: "No data found",
+        status: 200,
+        success: false,
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      status: 500,
+      error: error.message || "Unknown error",
+    });
+  }
+};
+
+exports.gettt_checkoutttt = async (req, res) => {
+  try {
+    const userID = req?.user;
+
+    if (!userID) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID is missing in the request",
+        status: 400,
+      });
+    }
+
+    const allProduct = await getChekOutById(userID);
+
+    if (allProduct && allProduct.length > 0) {
+      const updatedCombinedCart = allProduct.map((item) => {
+        if (item.cart) {
+          const subtotal = item.cart.cart_quantity * item.cart.cart_price;
+          const vatAmount = (subtotal * 16) / 100;
+          const total = subtotal + vatAmount;
+
+          return {
+            order_checkout: {
+              id: item.id,
+              shipping: item.order_checkout.shipping,
+              vat: item.order_checkout.vat,
+              total: total.toFixed(2),
+            },
+            cart: {
+              id: item.cart.id,
+              buyer_id: item.cart.buyer_id,
+              cart_quantity: item.cart.cart_quantity,
+              cart_price: item.cart.cart_price,
+              total: subtotal,
+            },
+            product_brands: { brand: item.product_brands.brand },
+          };
+        } else {
+          return null;
+        }
+      }).filter((item) => item !== null);
+
+      if (updatedCombinedCart.length > 0) {
+        return res.json({
+          message: "All product details",
+          status: 200,
+          success: true,
+          cart: updatedCombinedCart,
+        });
+      } else {
+        return res.json({
+          message: "No products found for the user",
+          status: 404,
+          success: false,
+        });
+      }
+    } else {
+      return res.json({
+        message: "No data found",
+        status: 404,
+        success: false,
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      status: 500,
+      error: error.message || "Unknown error",
+    });
+  }
+};
 

@@ -745,10 +745,9 @@ exports.add_product = async (req, res) => {
 //   }
 // };
 
-
 exports.get_all_Product = async (req, res) => {
   try {
-    const userId = req.params.userId; 
+    const userId = req.params.userId;
 
     const allProduct = await getAllProduct();
 
@@ -761,15 +760,12 @@ exports.get_all_Product = async (req, res) => {
           productMap[item.id] = {
             ...item,
             product_images: [item.product_image],
-           
           };
-         } 
-        else {
+        } else {
           productMap[item.id].product_images.push(item.product_image);
         }
       });
 
-     
       const updatedCombinedCart = Object.values(productMap).map((item) => {
         const {
           wishlist_like,
@@ -789,7 +785,7 @@ exports.get_all_Product = async (req, res) => {
         } = item;
 
         // Set wishlist_like based on user ID
-        rest.wishlist_like = userId == "guest" ? 0 : (item.wishlist_like ? 1 : 0);
+        rest.wishlist_like = userId == "guest" ? 0 : item.wishlist_like ? 1 : 0;
 
         return {
           ...rest,
@@ -838,11 +834,6 @@ exports.get_all_Product = async (req, res) => {
     });
   }
 };
-
-
-
-
-
 
 exports.getProductDetails_by_id = async (req, res) => {
   try {

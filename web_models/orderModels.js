@@ -31,4 +31,35 @@ module.exports = {
     return db.query("SELECT * FROM order_checkout ORDER BY id DESC LIMIT 1; ");
   },
 
+  getChekOutById: async (userID) => {
+    try {
+      const sql = `
+      SELECT
+    order_checkout.*,
+    product.*,
+    cart.*,
+    CONCAT(product_brands.product_brand) AS product_brands
+FROM
+    order_checkout
+JOIN
+    product ON order_checkout.product_id = product.id
+LEFT JOIN
+    cart ON order_checkout.cart_id = cart.id
+LEFT JOIN
+    product_brands ON product.id = product_brands.product_id
+WHERE
+    order_checkout.buyer_id = ?;
+
+  
+`;
+
+      const result = await db.query(sql, [userID]);
+
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  
 };

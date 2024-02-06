@@ -320,13 +320,143 @@ var dateValidation = (value, helpers) => {
 //   }
 // };
 
+// exports.signUp_buyerrrr = async (req, res) => {
+//   try {
+//     const {
+//       buyer_name,
+//       email,
+//       phone_number,
+//       user_name,
+//       license_state,
+//       license_number,
+//     } = req.body;
+
+//     var act_token = generateRandomString(8);
+//     console.log("act_token ==>>", act_token);
+
+//     const schema = Joi.object({
+//       buyer_name: Joi.string().required().messages({
+//         "any.required": "buyer_name is required",
+//         "string.base": "buyer_name must be a string",
+//       }),
+
+//       email: Joi.string().email().required().messages({
+//         "any.required": "Email is required",
+//         "string.email": "Email must be a valid email address",
+//       }),
+//       phone_number: Joi.string()
+//         .pattern(new RegExp("^[0-9]{10}$"))
+//         .required()
+//         .messages({
+//           "any.required": "Phone number is required",
+//           "string.pattern.base":
+//             "Phone number must be a 10-digit numeric value",
+//         }),
+//         user_name: Joi.string().required().messages({
+//         "any.required": "user_name is required",
+
+//       }),
+
+//       license_state: Joi.string().required().messages({
+//         "any.required": "license_state is required",
+//         "string.base": "license_state must be a string",
+//       }),
+//       license_number: Joi.string().required().messages({
+//         "any.required": "license_number is required",
+//         "string.base": "license_number   must be a string",
+//       }),
+//     });
+
+//     const result = schema.validate(req.body);
+
+//     if (result.error) {
+//       const message = result.error.details.map((i) => i.message).join(",");
+//       return res.json({
+//         message: result.error.details[0].message,
+//         error: message,
+//         missingParams: result.error.details[0].message,
+//         status: 400,
+//         success: false,
+//       });
+//     } else {
+//       var data = await fetchBuyerByEmail(email);
+
+//       if (data.length !== 0 && data[0].verify_user == 1) {
+//         return res.json({
+//           success: false,
+//           message:
+//             "Email address already registered. Please use a different email. ",
+//           status: 400,
+//         });
+//       }
+//        else {
+//         // Removed the user_name check block
+//         let phone_check = await buyer_phone_Check(phone_number);
+//         console.log("check phone number>>>", phone_check);
+//         if (phone_check.length != 0 && phone_check[0].verify_user == 1) {
+//           return res.json({
+//             success: false,
+//             message:
+//               "Phone Number already registered. Please use a different Phone Number.",
+//             status: 400,
+//           });
+//         } else {
+//           const hash = await bcrypt.hash(password, saltRounds);
+//           var user = {
+//             buyer_name: buyer_name,
+
+//             email: email,
+//             password: hash,
+//             phone_number: phone_number,
+//             license_state: license_state,
+//             license_number: license_number,
+
+//             act_token: act_token,
+//           };
+//           if (data.length != 0 && data[0].verify_user == 0) {
+//             const create_user = await update_user_buyer(user);
+//             const verificationLink = `${baseurl}/web/verifyBuyer/${act_token}`;
+//             await sendVerificationEmail(email, verificationLink);
+//             res.json({
+//               success: true,
+//               message: "User details updated successfully! ",
+//               status: 200,
+//               data_1: data,
+//             });
+//           } else {
+//             const create_user = await register_buyer(user);
+//             const verificationLink = `${baseurl}/web/verifyBuyer/${act_token}`;
+//             await sendVerificationEmail(email, verificationLink);
+//             res.json({
+//               success: true,
+//               message:
+//                 "Sign up successful! Welcome to our application,please check your register mail for verification",
+//               status: 200,
+
+//               data_1: data,
+//             });
+//           }
+//         }
+//       }
+//     }
+//   } catch (error) {
+//     console.log(error);
+//     return res.json({
+//       success: false,
+//       message: "An internal server error occurred. Please try again later.",
+//       status: 500,
+//       error: error,
+//     });
+//   }
+// };
+
 exports.signUp_buyer = async (req, res) => {
   try {
     const {
       buyer_name,
       email,
       phone_number,
-      password,
+      user_name,
       license_state,
       license_number,
     } = req.body;
@@ -352,9 +482,8 @@ exports.signUp_buyer = async (req, res) => {
           "string.pattern.base":
             "Phone number must be a 10-digit numeric value",
         }),
-      password: Joi.string().min(6).required().messages({
-        "any.required": "Password is required",
-        "string.min": "Password must be at least {#limit} characters",
+      user_name: Joi.string().required().messages({
+        "any.required": "user_name is required",
       }),
 
       license_state: Joi.string().required().messages({
@@ -363,7 +492,7 @@ exports.signUp_buyer = async (req, res) => {
       }),
       license_number: Joi.string().required().messages({
         "any.required": "license_number is required",
-        "string.base": "license_number   must be a string",
+        "string.base": "license_number must be a string",
       }),
     });
 
@@ -389,7 +518,6 @@ exports.signUp_buyer = async (req, res) => {
           status: 400,
         });
       } else {
-        // Removed the user_name check block
         let phone_check = await buyer_phone_Check(phone_number);
         console.log("check phone number>>>", phone_check);
         if (phone_check.length != 0 && phone_check[0].verify_user == 1) {
@@ -400,16 +528,13 @@ exports.signUp_buyer = async (req, res) => {
             status: 400,
           });
         } else {
-          const hash = await bcrypt.hash(password, saltRounds);
           var user = {
             buyer_name: buyer_name,
-
             email: email,
-            password: hash,
             phone_number: phone_number,
+            user_name: user_name,
             license_state: license_state,
             license_number: license_number,
-
             act_token: act_token,
           };
           if (data.length != 0 && data[0].verify_user == 0) {
@@ -431,7 +556,6 @@ exports.signUp_buyer = async (req, res) => {
               message:
                 "Sign up successful! Welcome to our application,please check your register mail for verification",
               status: 200,
-
               data_1: data,
             });
           }
@@ -448,6 +572,7 @@ exports.signUp_buyer = async (req, res) => {
     });
   }
 };
+
 
 exports.loginBuyer = async (req, res) => {
   try {
@@ -665,13 +790,13 @@ exports.resetPassword_buyer = async (req, res) => {
 
     const schema = Joi.alternatives(
       Joi.object({
-        password: Joi.string().min(8).max(10).required().messages({
+        password: Joi.string().min(6).max(16).required().messages({
           "any.required": "{{#label}} is required!!",
           "string.empty": "can't be empty!!",
           "string.min": "minimum 8 value required",
           "string.max": "maximum 10 values allowed",
         }),
-        confirm_password: Joi.string().min(8).max(10).required().messages({
+        confirm_password: Joi.string().min(6).max(16).required().messages({
           "any.required": "{{#label}} is required!!",
           "string.empty": "can't be empty!!",
           "string.min": "minimum 8 value required",

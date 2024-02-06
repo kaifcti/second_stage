@@ -5,7 +5,14 @@ const router = express.Router();
 
 // *******order code for router kaif start****
 
-router.post("/add_shipping_details", auth, orderController.order_shipping_details);
-router.post("/add_checkout",auth,orderController.order_checkout)
+router.post(
+  "/add_shipping_details",
+  auth,
+  orderController.order_shipping_details
+);
+router.post("/add_checkout", auth, orderController.order_checkout);
+router.get("/fetch_checkout", auth, orderController.get_checkout);
+
+
 
 module.exports = router;
