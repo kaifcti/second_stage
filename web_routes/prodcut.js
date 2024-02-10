@@ -18,15 +18,17 @@ router.get("/product_details/:userId", productController.get_all_Product);
 
 router.get(
   "/getProductDetails_by_id/:product_id?",
+  auth,
   productController.getProductDetails_by_id
 );
 
 router.get(
   "/getProductDetails_by_Category/:product_category?",
+  auth,
   productController.getProductDetails_by_Category
 );
 
-router.get("/filterAllProduct", productController.get_all_filter_Product);
+router.get("/filterAllProduct", auth, productController.get_all_filter_Product);
 router.post("/fetch_categories", productController.fetchProCategories);
 
 //***********product code for router kaif end****************

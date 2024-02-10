@@ -10,8 +10,8 @@ const router = express.Router();
 router.post("/signUp/buyer", web_userController.signUp_buyer);
 
 router.post("/login/buyer", web_userController.loginBuyer);
-router.post("/verifyBuyer", web_userController.verifyBuyer);
-router.get("/verifyBuyer/:id", web_userController.verifyBuyerEmail);
+// router.post("/verifyBuyer", web_userController.verifyBuyer);
+// router.get("/verifyBuyer/:id", web_userController.verifyBuyerEmail);
 router.post("/forgotPassword/buyer", web_userController.forgotPasswordBuyer);
 router.post(
   "/changePassword/buyer",
@@ -25,11 +25,11 @@ router.get(
 );
 
 router.post(
-  "/editProfile/buyer/:id",
-  auth,
+  "/editProfile/buyer",auth,
   upload.single("profile_image"),
   web_userController.editProfileBuyer
 );
+
 
 router.get("/myProfile/buyer", auth, web_userController.myProfile);
 

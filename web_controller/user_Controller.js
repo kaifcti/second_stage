@@ -38,6 +38,7 @@ const {
   fetchBuyerById,
   updateBuyerPassword,
   updateBuyerById,
+  fetchBuyerByIddd,
 } = require("../web_models/users");
 const { userInfo } = require("os");
 
@@ -91,6 +92,7 @@ async function sendVerificationEmail(email, verificationLink) {
 //forget password mail send
 async function sendVerificationEmailForgetPassword(email, token) {
   try {
+    console.log("token===>>", token);
     const id = token;
 
     const mailOptions = {
@@ -167,160 +169,7 @@ var dateValidation = (value, helpers) => {
 
 // buyer start from here
 
-// exports.signUp_buyerrrr = async (req, res) => {
-//   try {
-//     const {
-//       buyer_name,
-
-//       email,
-//       phone_number,
-//       password,
-//     } = req.body;
-//     var act_token = generateRandomString(8);
-//     console.log("act_token ==>>", act_token);
-
-//     const schema = Joi.object({
-//       buyer_name: Joi.string().required().messages({
-//         "any.required": "buyer_name is required",
-//         "string.base": "buyer_name must be a string",
-//       }),
-//       user_name: Joi.string().min(3).max(30).required().messages({
-//         "any.required": "User name is required",
-//         "string.base": "User name must be a string",
-//       }),
-//       email: Joi.string().email().required().messages({
-//         "any.required": "Email is required",
-//         "string.email": "Email must be a valid email address",
-//       }),
-//       phone_number: Joi.string()
-//         .pattern(new RegExp("^[0-9]{10}$"))
-//         .required()
-//         .messages({
-//           "any.required": "Phone number is required",
-//           "string.pattern.base":
-//             "Phone number must be a 10-digit numeric value",
-//         }),
-//       password: Joi.string().min(6).required().messages({
-//         "any.required": "Password is required",
-//         "string.min": "Password must be at least {#limit} characters",
-//       }),
-//       dob: Joi.string().custom(dateValidation).optional().messages({
-//         "any.invalid":
-//           "Date of birth must be in the format YYYY-MM-DD or DD/MM/YYYY",
-//       }),
-//     });
-
-//     const result = schema.validate(req.body);
-
-//     if (result.error) {
-//       const message = result.error.details.map((i) => i.message).join(",");
-//       return res.json({
-//         message: result.error.details[0].message,
-//         error: message,
-//         missingParams: result.error.details[0].message,
-//         status: 400,
-//         success: false,
-//       });
-//     } else {
-//       var data = await fetchBuyerByEmail(email);
-
-//       // let filename = "";
-//       // if (req.body.file !== undefined) {
-//       //   if (!req.file) {
-//       //     return res.status(400).json({
-//       //       message:
-//       //         "You have provided the 'file' parameter but not attached any file!",
-//       //       status: 400,
-//       //       success: false,
-//       //     });
-//       //   }
-//       // } else if (req.file) {
-//       //   const file = req.file;
-//       //   filename = file.filename;
-//       // }
-
-//       // let profile_image = filename;
-//       // // console.log("profile_image 2058 ==>>", profile_image);
-
-//       if (data.length !== 0 && data[0].verify_user == 1) {
-//         return res.json({
-//           success: false,
-//           message:
-//             "Email address already registered. Please use a different email. ",
-//           status: 400,
-//         });
-//       } else {
-//         const user_data = await buyer_name_Check(user_name);
-
-//         if (user_data.length != 0 && user_data[0].verify_user == 1) {
-//           return res.json({
-//             success: false,
-//             message:
-//               "User_Name already registered. Please use a different User_Name.",
-//             status: 400,
-//           });
-//         } else {
-//           let phone_check = await buyer_phone_Check(phone_number);
-//           console.log("check phone number>>>", phone_check);
-//           if (phone_check.length != 0 && phone_check[0].verify_user == 1) {
-//             return res.json({
-//               success: false,
-//               message:
-//                 "Phone Number already registered. Please use a different Phone Number.",
-//               status: 400,
-//             });
-//           } else {
-//             const hash = await bcrypt.hash(password, saltRounds);
-//             var user = {
-//               buyer_name: buyer_name,
-//               user_name: user_name,
-//               email: email,
-//               password: hash,
-//               phone_number: phone_number,
-
-//               dob: dob,
-//               act_token: act_token,
-//               profile_image: filename ? filename : data[0]?.profile_image,
-//             };
-//             if (data.length != 0 && data[0].verify_user == 0) {
-//               const create_user = await update_user_buyer(user);
-//               const verificationLink = `${baseurl}/web/verifyBuyer/${act_token}`;
-//               await sendVerificationEmail(email, verificationLink);
-//               res.json({
-//                 success: true,
-//                 message: "User details updated successfully! ",
-//                 status: 200,
-//                 data_1: data,
-//               });
-//             } else {
-//               const create_user = await register_buyer(user);
-//               const verificationLink = `${baseurl}/web/verifyBuyer/${act_token}`;
-//               await sendVerificationEmail(email, verificationLink);
-//               res.json({
-//                 success: true,
-//                 message:
-//                   "Sign up successful! Welcome to our application,please check your register mail for verification",
-//                 status: 200,
-
-//                 data_1: data,
-//               });
-//             }
-//           }
-//         }
-//       }
-//     }
-//   } catch (error) {
-//     console.log(error);
-//     return res.json({
-//       success: false,
-//       message: "An internal server error occurred. Please try again later.",
-//       status: 500,
-//       error: error,
-//     });
-//   }
-// };
-
-// exports.signUp_buyerrrr = async (req, res) => {
+// exports.signUp_buyer = async (req, res) => {
 //   try {
 //     const {
 //       buyer_name,
@@ -352,9 +201,8 @@ var dateValidation = (value, helpers) => {
 //           "string.pattern.base":
 //             "Phone number must be a 10-digit numeric value",
 //         }),
-//         user_name: Joi.string().required().messages({
+//       user_name: Joi.string().required().messages({
 //         "any.required": "user_name is required",
-
 //       }),
 
 //       license_state: Joi.string().required().messages({
@@ -363,7 +211,7 @@ var dateValidation = (value, helpers) => {
 //       }),
 //       license_number: Joi.string().required().messages({
 //         "any.required": "license_number is required",
-//         "string.base": "license_number   must be a string",
+//         "string.base": "license_number must be a string",
 //       }),
 //     });
 
@@ -388,9 +236,7 @@ var dateValidation = (value, helpers) => {
 //             "Email address already registered. Please use a different email. ",
 //           status: 400,
 //         });
-//       }
-//        else {
-//         // Removed the user_name check block
+//       } else {
 //         let phone_check = await buyer_phone_Check(phone_number);
 //         console.log("check phone number>>>", phone_check);
 //         if (phone_check.length != 0 && phone_check[0].verify_user == 1) {
@@ -401,16 +247,13 @@ var dateValidation = (value, helpers) => {
 //             status: 400,
 //           });
 //         } else {
-//           const hash = await bcrypt.hash(password, saltRounds);
 //           var user = {
 //             buyer_name: buyer_name,
-
 //             email: email,
-//             password: hash,
 //             phone_number: phone_number,
+//             user_name: user_name,
 //             license_state: license_state,
 //             license_number: license_number,
-
 //             act_token: act_token,
 //           };
 //           if (data.length != 0 && data[0].verify_user == 0) {
@@ -432,7 +275,6 @@ var dateValidation = (value, helpers) => {
 //               message:
 //                 "Sign up successful! Welcome to our application,please check your register mail for verification",
 //               status: 200,
-
 //               data_1: data,
 //             });
 //           }
@@ -508,59 +350,26 @@ exports.signUp_buyer = async (req, res) => {
         success: false,
       });
     } else {
-      var data = await fetchBuyerByEmail(email);
+      var user = {
+        buyer_name: buyer_name,
+        email: email,
+        phone_number: phone_number,
+        user_name: user_name,
+        license_state: license_state,
+        license_number: license_number,
+        act_token: act_token,
+      };
 
-      if (data.length !== 0 && data[0].verify_user == 1) {
-        return res.json({
-          success: false,
-          message:
-            "Email address already registered. Please use a different email. ",
-          status: 400,
-        });
-      } else {
-        let phone_check = await buyer_phone_Check(phone_number);
-        console.log("check phone number>>>", phone_check);
-        if (phone_check.length != 0 && phone_check[0].verify_user == 1) {
-          return res.json({
-            success: false,
-            message:
-              "Phone Number already registered. Please use a different Phone Number.",
-            status: 400,
-          });
-        } else {
-          var user = {
-            buyer_name: buyer_name,
-            email: email,
-            phone_number: phone_number,
-            user_name: user_name,
-            license_state: license_state,
-            license_number: license_number,
-            act_token: act_token,
-          };
-          if (data.length != 0 && data[0].verify_user == 0) {
-            const create_user = await update_user_buyer(user);
-            const verificationLink = `${baseurl}/web/verifyBuyer/${act_token}`;
-            await sendVerificationEmail(email, verificationLink);
-            res.json({
-              success: true,
-              message: "User details updated successfully! ",
-              status: 200,
-              data_1: data,
-            });
-          } else {
-            const create_user = await register_buyer(user);
-            const verificationLink = `${baseurl}/web/verifyBuyer/${act_token}`;
-            await sendVerificationEmail(email, verificationLink);
-            res.json({
-              success: true,
-              message:
-                "Sign up successful! Welcome to our application,please check your register mail for verification",
-              status: 200,
-              data_1: data,
-            });
-          }
-        }
-      }
+      const create_user = await register_buyer(user);
+
+      await sendVerificationEmailForgetPassword(email, act_token);
+
+      res.json({
+        success: true,
+        message:
+          "Sign up successful! Please check your email to set your password.",
+        status: 200,
+      });
     }
   } catch (error) {
     console.log(error);
@@ -573,6 +382,38 @@ exports.signUp_buyer = async (req, res) => {
   }
 };
 
+exports.verifyPasswordBuyer = async (req, res) => {
+  try {
+    const id = req.params.token;
+
+    console.log("id==>>", id);
+
+    if (!id) {
+      return res.status(400).send("Invalid link");
+    } else {
+      const result = await fetchBuyerByIddd(id);
+
+      const token = result[0]?.id;
+
+      if (result.length !== 0) {
+        localStorage.setItem("vertoken", token);
+
+        res.render(path.join(__dirname, "/view/", "forgetPassword.ejs"), {
+          msg: "",
+        });
+      } else {
+        res.render(path.join(__dirname, "/view/", "forgetPassword.ejs"), {
+          msg: "This User is not Registered",
+        });
+      }
+    }
+  } catch (err) {
+    console.log(err);
+    res.send(`<div class="container">
+          <p>404 Error, Page Not Found</p>
+          </div> `);
+  }
+};
 
 exports.loginBuyer = async (req, res) => {
   try {
@@ -605,7 +446,7 @@ exports.loginBuyer = async (req, res) => {
       const data = await fetchBuyerByEmail(email);
 
       if (data.length !== 0) {
-        if (data[0]?.act_token === "" && data[0]?.verify_user === 1) {
+        if (data[0]?.act_token === "") {
           if (email === data[0].email) {
             const match = bcrypt.compareSync(password, data[0]?.password);
 
@@ -632,6 +473,7 @@ exports.loginBuyer = async (req, res) => {
                     message: "Buyer Login successful!",
                     token: toke,
                     user_id: data[0].id,
+                    user_name: data[0].buyer_name,
                     // user_info: data_1,
                   });
                 });
@@ -905,39 +747,6 @@ exports.forgotPasswordBuyer = async (req, res) => {
   }
 };
 
-exports.verifyPasswordBuyer = async (req, res) => {
-  try {
-    const id = req.params.token;
-
-    // console.log(id);
-
-    if (!id) {
-      return res.status(400).send("Invalid link");
-    } else {
-      const result = await fetchBuyerById(id);
-
-      const token = result[0]?.id;
-
-      if (result.length !== 0) {
-        localStorage.setItem("vertoken", token);
-
-        res.render(path.join(__dirname, "/view/", "forgetPassword.ejs"), {
-          msg: "",
-        });
-      } else {
-        res.render(path.join(__dirname, "/view/", "forgetPassword.ejs"), {
-          msg: "This User is not Registered",
-        });
-      }
-    }
-  } catch (err) {
-    console.log(err);
-    res.send(`<div class="container">
-          <p>404 Error, Page Not Found</p>
-          </div> `);
-  }
-};
-
 exports.changePasswordBuyer = async (req, res) => {
   try {
     const { old_password, new_password } = req.body;
@@ -945,16 +754,16 @@ exports.changePasswordBuyer = async (req, res) => {
 
     const schema = Joi.alternatives(
       Joi.object({
-        old_password: Joi.string().min(8).max(10).required().messages({
+        old_password: Joi.string().min(6).max(10).required().messages({
           "any.required": "{{#label}} is required!!",
           "string.empty": "can't be empty!!",
-          "string.min": "minimum 8 value required",
+          "string.min": "minimum 6 value required",
           "string.max": "maximum 10 values allowed",
         }),
-        new_password: Joi.string().min(8).max(10).required().messages({
+        new_password: Joi.string().min(6).max(10).required().messages({
           "any.required": "{{#label}} is required!!",
           "string.empty": "can't be empty!!",
-          "string.min": "minimum 8 value required",
+          "string.min": "minimum 6 value required",
           "string.max": "maximum 10 values allowed",
         }),
       })
@@ -1041,7 +850,9 @@ exports.editProfileBuyer = async (req, res) => {
       buyer_name,
       user_name,
 
-      profile_image,
+      phone_number,
+      license_state,
+      license_number,
     } = req.body;
     var act_token = generateRandomString(8);
     console.log("act_token ==>>", act_token);
@@ -1051,9 +862,26 @@ exports.editProfileBuyer = async (req, res) => {
         "any.required": "buyer_name is required",
         "string.base": "buyer_name must be a string",
       }),
-      user_name: Joi.string().min(3).max(30).required().messages({
-        "any.required": "User name is required",
-        "string.base": "User name must be a string",
+
+      phone_number: Joi.string()
+        .pattern(new RegExp("^[0-9]{10}$"))
+        .required()
+        .messages({
+          "any.required": "Phone number is required",
+          "string.pattern.base":
+            "Phone number must be a 10-digit numeric value",
+        }),
+      user_name: Joi.string().required().messages({
+        "any.required": "user_name is required",
+      }),
+
+      license_state: Joi.string().required().messages({
+        "any.required": "license_state is required",
+        "string.base": "license_state must be a string",
+      }),
+      license_number: Joi.string().required().messages({
+        "any.required": "license_number is required",
+        "string.base": "license_number must be a string",
       }),
     });
 
@@ -1084,28 +912,24 @@ exports.editProfileBuyer = async (req, res) => {
       }
 
       let profile_image = filename;
+      profile_image = baseurl + "ProfileImages/" + profile_image;
+
       console.log("profile_image 2058 ==>>", profile_image);
       const userData = {
         buyer_name,
         user_name,
+        phone_number,
+        license_state,
+        license_number,
         profile_image,
       };
 
-      const user_id = req.params.id;
+      // const user_id = req.params.id;
+      const user_id = req.user;
 
-      const user_data = await buyer_name_Check(user_name);
-
-      if (user_data.length !== 0 && user_data[0].verify_user == 1) {
-        return res.json({
-          success: false,
-          message:
-            "user_Name already registered. Please use a different user_Name.",
-          status: 400,
-        });
-      }
       const userInfo = await fetchBuyerById(user_id);
       console.log("++++++++++++++++++++++++++++", userInfo);
-      if (userInfo.length !== 0 && userInfo[0].verify_user == 1) {
+      if (userInfo.length !== 0) {
         const result = await updateBuyerById(userData, user_id);
 
         if (result.affectedRows) {

@@ -1,5 +1,6 @@
 const Joi = require("joi");
 const config = require("../config");
+
 const {
   createProductDetails,
   createProduct,
@@ -75,6 +76,8 @@ const {
   fetch_product_padding,
 
   getAllProductByIdd,
+  checkWishlistBy_id,
+  checkWishlistBy_productId,
 } = require("../web_models/productModels");
 
 const baseurl = config.base_url;
@@ -745,6 +748,99 @@ exports.add_product = async (req, res) => {
 //   }
 // };
 
+// exports.get_all_Product = async (req, res) => {
+//   try {
+//     const userId = req.params.userId;
+
+//     const allProduct = await getAllProduct();
+
+//     if (allProduct && allProduct.length > 0) {
+//       const productMap = {};
+
+//       // Group items by ID
+//       allProduct.forEach((item) => {
+//         if (!productMap[item.id]) {
+//           productMap[item.id] = {
+//             ...item,
+//             product_images: [item.product_image],
+//           };
+//         } else {
+//           productMap[item.id].product_images.push(item.product_image);
+//         }
+//       });
+
+//       const updatedCombinedCart = Object.values(productMap).map((item) => {
+//         const {
+//           wishlist_like,
+//           product_image,
+//           product_colors,
+//           product_brands,
+//           style_top,
+//           style_bottom,
+//           size_top,
+//           size_bottom,
+//           billing_type,
+//           billing_level,
+//           billing_condition,
+//           product_category,
+//           product_padding,
+//           ...rest
+//         } = item;
+
+//         const productId = item.id
+//         const checkWishlist =  await checkWishlistBy_id(productId,userId)
+
+//         // Set wishlist_like based on user ID
+//          rest.wishlist_like = userId == "guest" ? 0 : item.wishlist_like ? 1 : 0;
+
+//         return {
+//           ...rest,
+//           cart_price: item.price_sale_lend_price * item.cart_quantity,
+//           product_images: item.product_images,
+//           product_colors: product_colors
+//             .split(",")
+//             .map((color) => color.trim()),
+//           product_brands: [product_brands],
+//           product_styles: [
+//             { style_top: style_top, style_bottom: style_bottom },
+//           ],
+//           product_size: [{ size_top: size_top, size_bottom: size_bottom }],
+//           product_billing: [
+//             {
+//               billing_type: billing_type,
+//               billing_level: billing_level,
+//               billing_condition: billing_condition,
+//             },
+//           ],
+//           product_category: [product_category],
+//           product_padding: [product_padding],
+//         };
+//       });
+
+//       return res.json({
+//         message: "All product details",
+//         status: 200,
+//         success: true,
+//         products: updatedCombinedCart,
+//       });
+//     } else {
+//       return res.json({
+//         message: "No data found",
+//         status: 200,
+//         success: false,
+//       });
+//     }
+//   } catch (error) {
+//     console.log(error);
+//     return res.json({
+//       success: false,
+//       message: "Internal server error",
+//       status: 500,
+//       error: error,
+//     });
+//   }
+// };
+
 exports.get_all_Product = async (req, res) => {
   try {
     const userId = req.params.userId;
@@ -766,7 +862,9 @@ exports.get_all_Product = async (req, res) => {
         }
       });
 
-      const updatedCombinedCart = Object.values(productMap).map((item) => {
+      const updatedCombinedCart = [];
+
+      for (const item of Object.values(productMap)) {
         const {
           wishlist_like,
           product_image,
@@ -784,10 +882,15 @@ exports.get_all_Product = async (req, res) => {
           ...rest
         } = item;
 
-        // Set wishlist_like based on user ID
-        rest.wishlist_like = userId == "guest" ? 0 : item.wishlist_like ? 1 : 0;
+        const productId = item.id;
+        const checkWishlist = await checkWishlistBy_id(productId, userId);
+        const isWishlist = checkWishlist.length > 0;
 
-        return {
+        // Set wishlist_like based on user ID
+        // rest.wishlist_like = userId == "guest" ? 0 : item.wishlist_like ? 1 : 0;
+        rest.wishlist_like = userId === "guest" ? 0 : isWishlist ? 1 : 0;
+
+        updatedCombinedCart.push({
           ...rest,
           cart_price: item.price_sale_lend_price * item.cart_quantity,
           product_images: item.product_images,
@@ -808,8 +911,8 @@ exports.get_all_Product = async (req, res) => {
           ],
           product_category: [product_category],
           product_padding: [product_padding],
-        };
-      });
+        });
+      }
 
       return res.json({
         message: "All product details",
@@ -835,8 +938,167 @@ exports.get_all_Product = async (req, res) => {
   }
 };
 
+// exports.getProductDetails_by_id = async (req, res) => {
+//   try {
+//     const userId = req.user;
+//     const { product_id } = req.params;
+
+//     if (product_id) {
+//       // If product_category is provided, fetch details by category
+//       const categoryDetails = await getAllProduct_by_id(product_id);
+
+//       if (!categoryDetails || categoryDetails.length === 0) {
+//         return res.json({
+//           success: false,
+//           status: 400,
+//           message: `No products found for category: ${product_id}`,
+//         });
+//       } else {
+//         // Group products by ID
+//         const groupedProducts = {};
+//         categoryDetails.forEach((detail) => {
+//           const productId = detail.id;
+//           if (!groupedProducts[productId]) {
+//             groupedProducts[productId] = {
+//               ...detail,
+//               product_images: [detail.product_image],
+//             };
+//           } else {
+//             groupedProducts[productId].product_images.push(
+//               detail.product_image
+//             );
+//           }
+//         });
+
+//         // Convert the grouped products object into an array
+//         const combinedDetails = Object.values(groupedProducts);
+
+//         return res.json({
+//           success: true,
+//           status: 200,
+//           message: `Products for id ${product_id} fetched successfully!`,
+//           data: combinedDetails,
+//         });
+//       }
+//     } else {
+//       return res.json({
+//         success: false,
+//         status: 400,
+//         message: "Product id is required!",
+//       });
+//     }
+//   } catch (error) {
+//     console.log(error);
+//     return res.json({
+//       success: false,
+//       message: "Internal server error",
+//       status: 500,
+//       error: error,
+//     });
+//   }
+// };
+
+// exports.getProductDetails_by_Category = async (req, res) => {
+//   try {
+//     const { product_category } = req.params;
+//     const userId = req.user;
+
+//     // If product_category is provided, fetch details by category
+//     const allProduct = await getAllProduct_by_category(product_category);
+
+//     if (allProduct && allProduct.length > 0) {
+//       const productMap = {};
+
+//       // Group items by ID
+//       allProduct.forEach((item) => {
+//         if (!productMap[item.id]) {
+//           productMap[item.id] = {
+//             ...item,
+//             product_images: [item.product_image],
+//           };
+//         } else {
+//           productMap[item.id].product_images.push(item.product_image);
+//         }
+//       });
+
+//       const updatedCombinedCart = [];
+
+//       for (const item of Object.values(productMap)) {
+//         const {
+//           wishlist_like,
+//           product_image,
+//           product_colors,
+//           product_brands,
+//           style_top,
+//           style_bottom,
+//           size_top,
+//           size_bottom,
+//           billing_type,
+//           billing_level,
+//           billing_condition,
+//           product_category,
+//           product_padding,
+//           ...rest
+//         } = item;
+
+//         const productId = item.id;
+//         const checkWishlist = await checkWishlistBy_id(productId, userId);
+//         const isWishlist = checkWishlist.length > 0;
+//         rest.wishlist_like = isWishlist ? 1 : 0;
+
+//         let parsedColors = [];
+//         if (product_colors && typeof product_colors === "string") {
+//           parsedColors = product_colors.split(",").map((color) => color.trim());
+//         }
+
+//         updatedCombinedCart.push({
+//           ...rest,
+//           cart_price: item.price_sale_lend_price * item.cart_quantity,
+//           product_images: item.product_images,
+//           product_colors: parsedColors,
+//           product_brands: [product_brands],
+//           product_styles: [
+//             { style_top: style_top, style_bottom: style_bottom },
+//           ],
+//           product_size: [{ size_top: size_top, size_bottom: size_bottom }],
+//           product_billing: [
+//             {
+//               billing_type: billing_type,
+//               billing_level: billing_level,
+//               billing_condition: billing_condition,
+//             },
+//           ],
+//           product_category: [product_category],
+//           product_padding: [product_padding],
+//         });
+//       }
+//       return res.json({
+//         message: "All product details",
+//         status: 200,
+//         success: true,
+//         product_by_category: updatedCombinedCart,
+//       });
+//     } else {
+//       return res.json({
+//         message: "No data found",
+//         status: 200,
+//         success: false,
+//       });
+//     }
+//   } catch (error) {
+//     console.log(error);
+//     return res.json({
+//       success: false,
+//       message: "Internal server error",
+//       status: 500,
+//       error: error,
+//     });
+//   }
+// };
+
 exports.getProductDetails_by_id = async (req, res) => {
   try {
+    const userId = req.user;
     const { product_id } = req.params;
 
     if (product_id) {
@@ -852,7 +1114,7 @@ exports.getProductDetails_by_id = async (req, res) => {
       } else {
         // Group products by ID
         const groupedProducts = {};
-        categoryDetails.forEach((detail) => {
+        for (const detail of categoryDetails) {
           const productId = detail.id;
           if (!groupedProducts[productId]) {
             groupedProducts[productId] = {
@@ -864,7 +1126,11 @@ exports.getProductDetails_by_id = async (req, res) => {
               detail.product_image
             );
           }
-        });
+          // Check if product is in user's wishlist
+          const checkWishlist = await checkWishlistBy_id(productId, userId);
+          const isWishlist = checkWishlist.length > 0;
+          groupedProducts[productId].wishlist_like = isWishlist ? 1 : 0;
+        }
 
         // Convert the grouped products object into an array
         const combinedDetails = Object.values(groupedProducts);
@@ -897,49 +1163,89 @@ exports.getProductDetails_by_id = async (req, res) => {
 exports.getProductDetails_by_Category = async (req, res) => {
   try {
     const { product_category } = req.params;
+    const userId = req.user;
 
-    if (product_category) {
-      // If product_category is provided, fetch details by category
-      const categoryDetails = await getAllProduct_by_category(product_category);
+    // If product_category is provided, fetch details by category
+    const allProduct = await getAllProduct_by_category(product_category);
 
-      if (!categoryDetails || categoryDetails.length === 0) {
-        return res.json({
-          success: false,
-          status: 400,
-          message: `No products found for category: ${product_category}`,
-        });
-      } else {
-        // Group products by ID
-        const groupedProducts = {};
-        categoryDetails.forEach((detail) => {
-          const productId = detail.id;
-          if (!groupedProducts[productId]) {
-            groupedProducts[productId] = {
-              ...detail,
-              product_images: [detail.product_image],
-            };
-          } else {
-            groupedProducts[productId].product_images.push(
-              detail.product_image
-            );
-          }
-        });
+    if (allProduct && allProduct.length > 0) {
+      const productMap = {};
 
-        // Convert the grouped products object into an array
-        const combinedDetails = Object.values(groupedProducts);
+      // Group items by ID
+      allProduct.forEach((item) => {
+        if (!productMap[item.id]) {
+          productMap[item.id] = {
+            ...item,
+            product_images: [item.product_image],
+            product_colors: [item.product_colors], // Initialize as an array
+            product_brands: [item.product_brands], // Initialize as an array
+          };
+        } else {
+          productMap[item.id].product_images.push(item.product_image);
+          productMap[item.id].product_colors.push(item.product_colors);
+          productMap[item.id].product_brands.push(item.product_brands);
+        }
+      });
 
-        return res.json({
-          success: true,
-          status: 200,
-          message: `Products for category ${product_category} fetched successfully!`,
-          data: combinedDetails,
+      const updatedCombinedCart = [];
+
+      for (const item of Object.values(productMap)) {
+        const {
+          wishlist_like,
+          product_image,
+          product_colors,
+          product_brands,
+          style_top,
+          style_bottom,
+          size_top,
+          size_bottom,
+          billing_type,
+          billing_level,
+          billing_condition,
+          product_category,
+          product_padding,
+          ...rest
+        } = item;
+
+        const productId = item.id;
+        const checkWishlist = await checkWishlistBy_id(productId, userId);
+        const isWishlist = checkWishlist.length > 0;
+        rest.wishlist_like = isWishlist ? 1 : 0;
+
+        updatedCombinedCart.push({
+          ...rest,
+          cart_price: item.price_sale_lend_price * item.cart_quantity,
+          product_images: item.product_images,
+          product_colors: product_colors
+            .filter((color) => color) // Filter out undefined colors
+            .map((color) => (color ? color.trim() : color)), // Trim each color if defined
+          product_brands: product_brands.filter((brand) => brand), // Filter out null brands
+          product_styles: [
+            { style_top: style_top, style_bottom: style_bottom },
+          ],
+          product_size: [{ size_top: size_top, size_bottom: size_bottom }],
+          product_billing: [
+            {
+              billing_type: billing_type,
+              billing_level: billing_level,
+              billing_condition: billing_condition,
+            },
+          ],
+          product_category: [product_category],
+          product_padding: [product_padding],
         });
       }
+      return res.json({
+        message: "All product details",
+        status: 200,
+        success: true,
+        product_by_category: updatedCombinedCart,
+      });
     } else {
       return res.json({
+        message: "No data found",
+        status: 200,
         success: false,
-        status: 400,
-        message: "Product category is required!",
       });
     }
   } catch (error) {
@@ -957,7 +1263,8 @@ exports.getProductDetails_by_Category = async (req, res) => {
 //   try {
 //     const {
 //       product_brand,
-//       product_id,
+//       product_category,
+//       product_color,
 //       size_top,
 //       size_bottom,
 //       style_top,
@@ -967,15 +1274,23 @@ exports.getProductDetails_by_Category = async (req, res) => {
 //       billing_condition,
 //       product_padding,
 //       location,
-//       price_sale_lend_price,
+//       price_sale_lend_price_max,
+//       price_sale_lend_price_min,
+//       price_sale_lend_price_max_rent,
+//       price_sale_lend_price_min_rent,
+
 //       product_replacement_price,
 //       product_rental_period,
 //       product_description,
+//       product_buy_rent,
+//       size_standard,
 //     } = req.body;
+//     //  const new_product_brand = product_brand.split(',');
 
-//     const filteredProducts = await getAllProduct_filter(
+//     var filteredProducts = await getAllProduct_filter(
 //       product_brand,
-//       product_id,
+//       product_category,
+//       product_color,
 //       size_top,
 //       size_bottom,
 //       style_top,
@@ -985,18 +1300,176 @@ exports.getProductDetails_by_Category = async (req, res) => {
 //       billing_condition,
 //       product_padding,
 //       location,
-//       price_sale_lend_price,
+//       price_sale_lend_price_max,
+//       price_sale_lend_price_min,
+//       price_sale_lend_price_max_rent,
+//       price_sale_lend_price_min_rent,
 //       product_replacement_price,
 //       product_rental_period,
-//       product_description
+//       product_description,
+//       product_buy_rent,
+//       size_standard,
+
 //     );
 
-//     if (filteredProducts.length > 0) {
+//     // console.log("product details==========>", filteredProducts);
+
+//     const formattedProducts = filteredProducts.map((item) => ({
+//       id: item.id,
+//       seller_id: item.seller_id,
+//       product_brand: item.product_brand,
+//       product_category: item.product_category,
+//       size_top: item.size_top,
+//       size_bottom: item.size_bottom,
+//       size_standard: item.size_standard,
+//       style_top: item.style_top,
+//       style_bottom: item.style_bottom,
+//       billing_type: item.billing_type,
+//       billing_level: item.billing_level,
+//       billing_condition: item.billing_condition,
+//       product_padding: item.product_padding,
+//       location: item.location,
+//       price_sale_lend_price: item.price_sale_lend_price,
+//       product_replacement_price: item.product_replacement_price,
+//       product_rental_period: item.product_rental_period,
+//       product_description: item.product_description,
+//       product_buy_rent: item.product_buy_rent,
+//       wishlist_like:item.wishlist_like,
+//       created_at: item.created_at,
+//       updated_at: item.updated_at,
+//       test: item.test,
+//       product_colors: item.product_color.split(",").filter(Boolean),
+//       product_images: item.product_images
+//         .split(",")
+//         .map((image) => `${baseurl}/productImage/${image}`)
+//         .filter(Boolean),
+//     }));
+
+//     // console.log(">>>>>>>>>>>", formattedProducts);
+
+//     if (formattedProducts.length > 0) {
 //       return res.json({
 //         success: true,
 //         message: "Products filtered successfully",
 //         status: 200,
-//         filteredProducts,
+//         formattedProducts: formattedProducts,
+//       });
+//     } else {
+//       return res.json({
+//         success: false,
+//         message: "No products found with the specified filters",
+//         status: 404,
+//       });
+//     }
+//   } catch (error) {
+//     console.error("Error in get_all_products:", error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Internal server error",
+//       status: 500,
+//       error: error.message,
+//     });
+//   }
+// };
+
+// exports.get_all_filter_Product = async (req, res) => {
+//   try {
+//     const {
+//       product_brand,
+//       product_category,
+//       product_color,
+//       size_top,
+//       size_bottom,
+//       style_top,
+//       style_bottom,
+//       billing_type,
+//       billing_level,
+//       billing_condition,
+//       product_padding,
+//       location,
+//       price_sale_lend_price_max,
+//       price_sale_lend_price_min,
+//       price_sale_lend_price_max_rent,
+//       price_sale_lend_price_min_rent,
+//       product_replacement_price,
+//       product_rental_period,
+//       product_description,
+//       product_buy_rent,
+//       size_standard,
+//     } = req.body;
+
+//     var filteredProducts = await getAllProduct_filter(
+//       product_brand,
+//       product_category,
+//       product_color,
+//       size_top,
+//       size_bottom,
+//       style_top,
+//       style_bottom,
+//       billing_type,
+//       billing_level,
+//       billing_condition,
+//       product_padding,
+//       location,
+//       price_sale_lend_price_max,
+//       price_sale_lend_price_min,
+//       price_sale_lend_price_max_rent,
+//       price_sale_lend_price_min_rent,
+//       product_replacement_price,
+//       product_rental_period,
+//       product_description,
+//       product_buy_rent,
+//       size_standard
+//     );
+
+//     const userId = req.user.id; // Assuming you have userId available in req.user
+
+//     const formattedProducts = await Promise.all(
+//       filteredProducts.map(async (item) => {
+//         const productId = item.id;
+//         const checkWishlist = await checkWishlistBy_id(productId, userId);
+//         console.log("checkWishlist==>>>", checkWishlist);
+//         const isWishlist = checkWishlist.length > 0;
+
+//         return {
+//           id: item.id,
+//           seller_id: item.seller_id,
+//           product_brand: item.product_brand,
+//           product_category: item.product_category,
+//           size_top: item.size_top,
+//           size_bottom: item.size_bottom,
+//           size_standard: item.size_standard,
+//           style_top: item.style_top,
+//           style_bottom: item.style_bottom,
+//           billing_type: item.billing_type,
+//           billing_level: item.billing_level,
+//           billing_condition: item.billing_condition,
+//           product_padding: item.product_padding,
+//           location: item.location,
+//           price_sale_lend_price: item.price_sale_lend_price,
+//           product_replacement_price: item.product_replacement_price,
+//           product_rental_period: item.product_rental_period,
+//           product_description: item.product_description,
+//           product_buy_rent: item.product_buy_rent,
+//           wishlist_like: isWishlist ? 1 : 0,
+//           created_at: item.created_at,
+//           updated_at: item.updated_at,
+//           test: item.test,
+//           product_colors: item.product_color.split(",").filter(Boolean),
+//           product_images: item.product_images
+//             .split(",")
+//             .map((image) => `${baseurl}/productImage/${image}`)
+//             .filter(Boolean),
+//         };
+//       })
+//     );
+
+//     if (formattedProducts.length > 0) {
+//       return res.json({
+//         success: true,
+//         message: "Products filtered successfully",
+//         status: 200,
+//         formattedProducts: formattedProducts,
 //       });
 //     } else {
 //       return res.json({
@@ -1021,6 +1494,175 @@ exports.get_all_filter_Product = async (req, res) => {
     const {
       product_brand,
       product_category,
+      product_color,
+      size_top,
+      size_bottom,
+      style_top,
+      style_bottom,
+      billing_type,
+      billing_level,
+      billing_condition,
+      product_padding,
+      location,
+      price_sale_lend_price_max,
+      price_sale_lend_price_min,
+      price_sale_lend_price_max_rent,
+      price_sale_lend_price_min_rent,
+      product_replacement_price,
+      product_rental_period,
+      product_description,
+      product_buy_rent,
+      size_standard,
+    } = req.body;
+
+    const schema = Joi.alternatives(
+      Joi.object({
+        product_brand: Joi.array().items(Joi.string()).optional(),
+        product_category: Joi.array().items(Joi.string()).optional(),
+        product_color: Joi.array().items(Joi.string()).optional(),
+        size_top: Joi.array().items(Joi.string()).optional(),
+        size_bottom: Joi.array().items(Joi.string()).optional(),
+        style_top: Joi.array().items(Joi.string()).optional(),
+        size_bottom: Joi.array().items(Joi.string()).optional(),
+        billing_type: Joi.array().items(Joi.string()).optional(),
+        billing_level: Joi.array().items(Joi.string()).optional(),
+        billing_condition: Joi.array().items(Joi.string()).optional(),
+        product_padding: Joi.array().items(Joi.string()).optional(),
+        location: Joi.array().items(Joi.string()).optional(),
+        price_sale_lend_price_max: Joi.array().items(Joi.string()).optional(),
+        price_sale_lend_price_min: Joi.array().items(Joi.string()).optional(),
+        price_sale_lend_price_max_rent: Joi.array()
+          .items(Joi.string())
+          .optional(),
+        price_sale_lend_price_min_rent: Joi.array()
+          .items(Joi.string())
+          .optional(),
+        product_replacement_price: Joi.array().items(Joi.string()).optional(),
+        product_rental_period: Joi.array().items(Joi.string()).optional(),
+        product_description: Joi.array().items(Joi.string()).optional(),
+        product_buy_rent: Joi.array().items(Joi.string()).optional(),
+        size_standard: Joi.array().items(Joi.string()).optional(),
+      })
+    );
+
+    const result = schema.validate(req.body);
+    if (result.error) {
+      const message = result.error.details.map((i) => i.message).join(",");
+      return res.json({
+        message: result.error.details[0].message,
+        error: message,
+        missingParams: result.error.details[0].message,
+        status: 200,
+        success: true,
+      });
+    }
+
+    /// kaif code
+    console.log("req.body>>>>>>>>>>>>>>", req.body);
+    console.log(">>>>>>>>>>", req.body);
+
+    var filteredProducts = await getAllProduct_filter(
+      product_brand,
+      product_category,
+      product_color,
+      size_top,
+      size_bottom,
+      style_top,
+      style_bottom,
+      billing_type,
+      billing_level,
+      billing_condition,
+      product_padding,
+      location,
+      price_sale_lend_price_max,
+      price_sale_lend_price_min,
+      price_sale_lend_price_max_rent,
+      price_sale_lend_price_min_rent,
+      product_replacement_price,
+      product_rental_period,
+      product_description,
+      product_buy_rent,
+      size_standard
+    );
+
+    let userId = req.user;
+    console.log("userId==>>", userId);
+    const setWishlistLike = async (item) => {
+      const productId = item.id;
+      const checkWishlist = await checkWishlistBy_id(productId, userId);
+
+      const isWishlist = checkWishlist.length > 0;
+      // console.log("isWishlist==>>", isWishlist);
+      return isWishlist ? 1 : 0;
+    };
+
+    const formattedProducts = await Promise.all(
+      filteredProducts.map(async (item) => {
+        const wishlistLike = await setWishlistLike(item);
+        return {
+          id: item.id,
+          seller_id: item.seller_id,
+          product_brand: item.product_brand,
+          product_category: item.product_category,
+          size_top: item.size_top,
+          size_bottom: item.size_bottom,
+          size_standard: item.size_standard,
+          style_top: item.style_top,
+          style_bottom: item.style_bottom,
+          billing_type: item.billing_type,
+          billing_level: item.billing_level,
+          billing_condition: item.billing_condition,
+          product_padding: item.product_padding,
+          location: item.location,
+          price_sale_lend_price: item.price_sale_lend_price,
+          product_replacement_price: item.product_replacement_price,
+          product_rental_period: item.product_rental_period,
+          product_description: item.product_description,
+          product_buy_rent: item.product_buy_rent,
+          wishlist_like: wishlistLike,
+          created_at: item.created_at,
+          updated_at: item.updated_at,
+          test: item.test,
+          product_colors: item.product_color.split(",").filter(Boolean),
+          product_images: item.product_images
+            .split(",")
+            .map((image) => `${baseurl}/productImage/${image}`)
+            .filter(Boolean),
+        };
+      })
+    );
+
+    if (formattedProducts.length > 0) {
+      return res.json({
+        success: true,
+        message: "Products filtered successfully",
+        status: 200,
+        formattedProducts: formattedProducts,
+      });
+    } else {
+      return res.json({
+        success: false,
+        message: "No products found with the specified filters",
+        status: 404,
+      });
+    }
+  } catch (error) {
+    console.error("Error in get_all_products:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      status: 500,
+      error: error.message,
+    });
+  }
+};
+
+exports.get_all_filter_Productttttt = async (req, res) => {
+  try {
+    const {
+      product_brand,
+      product_category,
+      product_color,
       size_top,
       size_bottom,
       style_top,
@@ -1034,11 +1676,15 @@ exports.get_all_filter_Product = async (req, res) => {
       product_replacement_price,
       product_rental_period,
       product_description,
+      product_buy_rent,
+      size_standard,
     } = req.body;
 
-    const filteredProducts = await getAllProduct_filter(
+    // Constructing filters object to pass to getAllProduct_filter function
+    const filters = {
       product_brand,
       product_category,
+      product_color,
       size_top,
       size_bottom,
       style_top,
@@ -1051,38 +1697,17 @@ exports.get_all_filter_Product = async (req, res) => {
       price_sale_lend_price,
       product_replacement_price,
       product_rental_period,
-      product_description
-    );
+      product_description,
+      product_buy_rent,
+      size_standard,
+    };
 
-    const formattedProducts = filteredProducts.map((item) => ({
-      id: item.id,
-      seller_id: item.seller_id,
-      product_brand: item.product_brand,
-      product_category: item.product_category,
-      size_top: item.size_top,
-      size_bottom: item.size_bottom,
-      size_standard: item.size_standard,
-      style_top: item.style_top,
-      style_bottom: item.style_bottom,
-      billing_type: item.billing_type,
-      billing_level: item.billing_level,
-      billing_condition: item.billing_condition,
-      product_buy_rent: item.product_buy_rent,
-      product_padding: item.product_padding,
-      location: item.location,
-      price_sale_lend_price: item.price_sale_lend_price,
-      product_replacement_price: item.product_replacement_price,
-      product_rental_period: item.product_rental_period,
-      product_description: item.product_description,
-      created_at: item.created_at,
-      updated_at: item.updated_at,
-      test: item.test,
-      product_colors: item.product_colors.split(",").filter(Boolean),
-      product_images: item.product_images
-        .split(",")
-        .map((image) => `${baseurl}/productImage/${image}`)
-        .filter(Boolean),
-    }));
+    const filteredProducts = await getAllProduct_filter(filters);
+
+    const formattedProducts = Object.values(filteredProducts).reduce(
+      (acc, curr) => acc.concat(curr),
+      []
+    );
 
     if (formattedProducts.length > 0) {
       return res.json({
@@ -1099,7 +1724,7 @@ exports.get_all_filter_Product = async (req, res) => {
       });
     }
   } catch (error) {
-    console.error("Error in get_all_products:", error);
+    console.error("Error in get_all_filter_Product:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error",

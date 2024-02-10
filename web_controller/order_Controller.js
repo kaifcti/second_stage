@@ -5,14 +5,22 @@ const jwt = require("jsonwebtoken");
 const {
   insert_into_order_shipping,
   get_order_shipping,
+  fetchShipping_by_id,
   fetchBuyerBy_Id,
   insert_checkOut,
   checkBuyerExistence,
   get_checkOut,
   getChekOutById,
+  getCartDetails_by_id,
+  updateCartT,
+  updatePaymentStatus,
 } = require("../web_models/orderModels");
 
 const baseurl = config.base_url;
+
+function generateRandomNumber(min, max) {
+  return Math.floor(Math.random() * (99999 - 10000 + 1)) + 10000;
+}
 
 exports.order_shipping_details = async (req, res) => {
   try {
@@ -72,7 +80,6 @@ exports.order_shipping_details = async (req, res) => {
       mail,
       order_notes,
     });
-
     if (commonValidationResult.error) {
       const errorMessage = commonValidationResult.error.details
         .map((detail) => detail.message)
@@ -86,6 +93,7 @@ exports.order_shipping_details = async (req, res) => {
       });
     } else {
       const data = {
+        buyer_id: userId,
         first_name,
         last_name,
         company_name,
@@ -127,11 +135,98 @@ exports.order_shipping_details = async (req, res) => {
   }
 };
 
+exports.get_shipping_details = async (req, res) => {
+  try {
+    const buyer_id = req.user;
+
+    const fetchBuyer = await fetchBuyerBy_Id(buyer_id);
+    if (fetchBuyer.length == 0) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    } else {
+      const fetch_shipping = await fetchShipping_by_id(buyer_id);
+
+      if (fetch_shipping.length !== 0) {
+        return res.json({
+          success: true,
+          status: 200,
+          message: `fetch shipping details of buyer_id='${buyer_id}' successful`,
+          shipping_details: fetch_shipping,
+        });
+      } else {
+        return res.json({
+          success: true,
+          status: 400,
+          message: `no shipping details found`,
+        });
+      }
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      status: 500,
+      error: error.message || "Unknown error",
+    });
+  }
+};
+
+// exports.order_checkout = async (req, res) => {
+//   try {
+//     const authHeader = req.headers.authorization;
+//     const token_1 = authHeader;
+//     const token = token_1.replace("Bearer ", "");
+//     const decoded = jwt.decode(token);
+//     const userId = decoded.data.id;
+
+//     const userData = await checkBuyerExistence(userId);
+//     console.log("userData==>>>", userData);
+
+//     if (userData.length === 0) {
+//       return res.status(200).json({
+//         success: false,
+//         message: "User not found",
+//       });
+//     }
+
+//     const { product_id, cart_id, shipping, vat, total } = req.body;
+
+//     const checkOutData = {
+//       buyer_id: userId,
+//       product_id,
+//       cart_id,
+//       shipping,
+//       vat,
+//       total,
+//     };
+
+//     const addCheckOut = await insert_checkOut(checkOutData);
+
+//     // Retrieve the updated cart
+//     const getCheckout = await get_checkOut();
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "Insert to checkout successfully!",
+//       data: getCheckout,
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "An internal server error occurred. Please try again later.",
+//       error: error.message,
+//     });
+//   }
+// };
+
 exports.order_checkout = async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
-    const token_1 = authHeader;
-    const token = token_1.replace("Bearer ", "");
+    const token = authHeader.replace("Bearer ", "");
     const decoded = jwt.decode(token);
     const userId = decoded.data.id;
 
@@ -145,27 +240,58 @@ exports.order_checkout = async (req, res) => {
       });
     }
 
-    const { product_id, cart_id, shipping, vat, total } = req.body;
+    var order_number = generateRandomNumber(4, 6);
+
+    const checkCartDetails = await getCartDetails_by_id(userId);
+    console.log("checkCartDetails-->>>", checkCartDetails);
+
+    const ids = checkCartDetails.map((item) => item.id);
+
+    console.log("idss==>>>", ids);
+
+    const { shipping, vat, total, payment_method } = req.body;
 
     const checkOutData = {
       buyer_id: userId,
-      product_id,
-      cart_id,
       shipping,
       vat,
       total,
+      payment_method,
+      order_number: order_number,
     };
 
     const addCheckOut = await insert_checkOut(checkOutData);
+    // console.log("addCheckout==>>>", addCheckOut);
 
-    // Retrieve the updated cart
-    const getCheckout = await get_checkOut();
+    const checkOutId = addCheckOut.insertId;
+    console.log("checkOutId==>>", checkOutId);
 
-    return res.status(200).json({
-      success: true,
-      message: "Insert to checkout successfully!",
-      data: getCheckout,
-    });
+    if (addCheckOut.affectedRows > 0) {
+      for (const itemId of ids) {
+        const updateCArt = await updateCartT(checkOutId, itemId, userId);
+      }
+      const updatePaymentSta = await updatePaymentStatus(userId);
+      const getCheckout = await get_checkOut();
+
+      return res.status(200).json({
+        success: true,
+        message: "Insert to checkout successfully!",
+        data: getCheckout,
+      });
+    } else {
+      return res.json({
+        success: false,
+        status: 200,
+        message: "checkout not insert successfully!",
+      });
+    }
+
+    // let order_comfrim = ids.map((item) =>{
+
+    //   const addCheckOut_ = await insert_checkOut(user_id , item);
+    // }
+
+    // Retrieve the updated checkout
   } catch (error) {
     console.error(error);
     return res.status(500).json({
@@ -176,45 +302,202 @@ exports.order_checkout = async (req, res) => {
   }
 };
 
+// exports.get_checkout = async (req, res) => {
+//   try {
+//     const authHeader = req.headers.authorization;
+//     const token = authHeader.replace("Bearer ", "");
+//     const decoded = jwt.decode(token);
+//     const userID = decoded.data.id;
 
+//     const allProducts = await getChekOutById(userID);
+
+//     if (allProducts && allProducts.length > 0) {
+//       const orderMap = new Map();
+
+//       allProducts.forEach((item) => {
+//         const orderId = item.order_id;
+
+//         if (!orderMap.has(orderId)) {
+//           orderMap.set(orderId, {
+//             order_id:item.id,
+//             order_number: item.order_number,
+//             shipping: item.shipping,
+//             vat: item.vat,
+//             total: item.total,
+//             order_date: item.order_date,
+//             payment_method: item.payment_method,
+//             payment_status: item.payment_status,
+//             cart_details: [],
+//             subtotal: 0,
+//           });
+//         }
+
+//         const order = orderMap.get(orderId);
+
+//         order.cart_details.push({
+//           cart_id: item.cart_id,
+//           buyer_id: item.buyer_id,
+//           cart_quantity: item.cart_quantity,
+//           cart_price: item.cart_price,
+//           total: item.cart_quantity * item.cart_price,
+//         });
+
+//         order.subtotal += item.cart_quantity * item.cart_price;
+//       });
+
+//       const orders = [...orderMap.values()];
+
+//       return res.json({
+//         message: "All product details",
+//         status: 200,
+//         success: true,
+//         products: orders,
+//       });
+//     } else {
+//       return res.json({
+//         message: "No data found",
+//         status: 200,
+//         success: false,
+//       });
+//     }
+//   } catch (error) {
+//     console.error(error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Internal server error",
+//       status: 500,
+//       error: error.message || "Unknown error",
+//     });
+//   }
+// };
+
+// exports.get_checkout = async (req, res) => {
+//   try {
+//     const authHeader = req.headers.authorization;
+//     const token = authHeader.replace("Bearer ", "");
+//     const decoded = jwt.decode(token);
+//     const userID = decoded.data.id;
+
+//     const allProducts = await getChekOutById(userID);
+
+//     if (allProducts && allProducts.length > 0) {
+//       const orderMap = new Map();
+
+//       allProducts.forEach((item) => {
+//         const orderId = item.order_id;
+
+//         if (!orderMap.has(orderId)) {
+//           orderMap.set(orderId, {
+//             order_id:orderId,
+//             order_number: item.order_number,
+//             shipping: item.shipping,
+//             vat: item.vat,
+//             total: item.total,
+//             order_date: item.order_date,
+//             payment_method: item.payment_method,
+//             payment_status: item.payment_status,
+//             cart_details: [],
+//             subtotal: 0,
+//           });
+//         }
+
+//         const order = orderMap.get(orderId);
+
+//         order.cart_details.push({
+//           cart_id: item.cart_id,
+//           product_id:item.product_id,
+//           buyer_id: item.buyer_id,
+//           cart_quantity: item.cart_quantity,
+//           cart_price: item.cart_price,
+//           total: item.cart_quantity * item.cart_price,
+//           product_id: item.product_id,
+//           product_brand: item.product_brand,
+//         });
+
+//         order.subtotal += item.cart_quantity * item.cart_price;
+//       });
+
+//       const orders = [...orderMap.values()];
+
+//       return res.json({
+//         message: "All product details",
+//         status: 200,
+//         success: true,
+//         products: orders,
+//       });
+//     } else {
+//       return res.json({
+//         message: "No data found",
+//         status: 200,
+//         success: false,
+//       });
+//     }
+//   } catch (error) {
+//     console.error(error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Internal server error",
+//       status: 500,
+//       error: error.message || "Unknown error",
+//     });
+//   }
+// };
 
 exports.get_checkout = async (req, res) => {
   try {
-    const userID = req?.user;
+    const authHeader = req.headers.authorization;
+    const token = authHeader.replace("Bearer ", "");
+    const decoded = jwt.decode(token);
+    const userID = decoded.data.id;
 
-    const allProduct = await getChekOutById(userID);
+    const allProducts = await getChekOutById(userID);
 
-    if (allProduct && allProduct.length > 0) {
-      const updatedCombinedCart = allProduct.map((item) => {
-        return {
-          order_checkout: {
-            // Include other order_checkout fields as needed
-            id: item.id,
+    if (allProducts && allProducts.length > 0) {
+      const orderMap = new Map();
+
+      allProducts.forEach((item) => {
+        const orderId = item.order_id;
+
+        if (!orderMap.has(orderId)) {
+          orderMap.set(orderId, {
+            order_id: item.order_id,
+            order_number: item.order_number,
             shipping: item.shipping,
             vat: item.vat,
             total: item.total,
-          },
+            order_date: item.order_date,
+            payment_method: item.payment_method,
+            payment_status: item.payment_status,
 
-          cart: {
-            cart_id: item.id,
-            buyer_id: item.buyer_id,
-            cart_quantity: item.cart_quantity,
-            cart_price: item.cart_price,
-            total: item.cart_quantity * item.cart_price,
-          },
+            cart_details: [],
+            subtotal: 0,
+            total_count: 0,
+          });
+        }
 
-          product_brands: {
-            product_id: item.product_id,
-            brand: item.product_brands,
-          },
-        };
+        const order = orderMap.get(orderId);
+
+        order.cart_details.push({
+          cart_id: item.cart_id,
+          buyer_id: item.buyer_id,
+          cart_quantity: item.cart_quantity,
+          cart_price: item.cart_price,
+          total: item.cart_quantity * item.cart_price,
+          product_id: item.product_id,
+          product_brand: item.product_brand,
+          total_cart_items: item.total_cart_items,
+        });
+        order.total_count += item.total_cart_items;
+        order.subtotal += item.cart_quantity * item.cart_price;
       });
+
+      const orders = [...orderMap.values()];
 
       return res.json({
         message: "All product details",
         status: 200,
         success: true,
-        checkout_details: updatedCombinedCart,
+        products: orders,
       });
     } else {
       return res.json({
@@ -249,32 +532,34 @@ exports.gettt_checkoutttt = async (req, res) => {
     const allProduct = await getChekOutById(userID);
 
     if (allProduct && allProduct.length > 0) {
-      const updatedCombinedCart = allProduct.map((item) => {
-        if (item.cart) {
-          const subtotal = item.cart.cart_quantity * item.cart.cart_price;
-          const vatAmount = (subtotal * 16) / 100;
-          const total = subtotal + vatAmount;
+      const updatedCombinedCart = allProduct
+        .map((item) => {
+          if (item.cart) {
+            const subtotal = item.cart.cart_quantity * item.cart.cart_price;
+            const vatAmount = (subtotal * 16) / 100;
+            const total = subtotal + vatAmount;
 
-          return {
-            order_checkout: {
-              id: item.id,
-              shipping: item.order_checkout.shipping,
-              vat: item.order_checkout.vat,
-              total: total.toFixed(2),
-            },
-            cart: {
-              id: item.cart.id,
-              buyer_id: item.cart.buyer_id,
-              cart_quantity: item.cart.cart_quantity,
-              cart_price: item.cart.cart_price,
-              total: subtotal,
-            },
-            product_brands: { brand: item.product_brands.brand },
-          };
-        } else {
-          return null;
-        }
-      }).filter((item) => item !== null);
+            return {
+              order_checkout: {
+                id: item.id,
+                shipping: item.order_checkout.shipping,
+                vat: item.order_checkout.vat,
+                total: total.toFixed(2),
+              },
+              cart: {
+                id: item.cart.id,
+                buyer_id: item.cart.buyer_id,
+                cart_quantity: item.cart.cart_quantity,
+                cart_price: item.cart.cart_price,
+                total: subtotal,
+              },
+              product_brands: { brand: item.product_brands.brand },
+            };
+          } else {
+            return null;
+          }
+        })
+        .filter((item) => item !== null);
 
       if (updatedCombinedCart.length > 0) {
         return res.json({
@@ -307,4 +592,3 @@ exports.gettt_checkoutttt = async (req, res) => {
     });
   }
 };
-

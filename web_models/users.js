@@ -65,10 +65,10 @@ module.exports = {
   },
 
   updateBuyerPassword: async (password, id) => {
-    return db.query("UPDATE tbl_buyer SET password = ? WHERE id = ?", [
-      password,
-      id,
-    ]);
+    return db.query(
+      "UPDATE tbl_buyer SET  act_token='', password = ? WHERE id = ?",
+      [password, id]
+    );
   },
 
   fetchUserById: async (id) => {
@@ -77,6 +77,9 @@ module.exports = {
 
   fetchBuyerById: async (id) => {
     return db.query(" select * from tbl_buyer where id= ?", [id]);
+  },
+  fetchBuyerByIddd: async (act_token) => {
+    return db.query(" select * from tbl_buyer where act_token= ?", [act_token]);
   },
 
   updateUserById: async (user, user_id) => {
@@ -92,10 +95,13 @@ module.exports = {
   },
 
   updateBuyerById: async (user, user_id) => {
-    const query = `UPDATE tbl_buyer SET buyer_name=?, user_name=?, profile_image=? WHERE id=?`;
+    const query = `UPDATE tbl_buyer SET buyer_name=?, user_name=?,phone_number=?,license_state=?,license_number=?, profile_image=? WHERE id=?`;
     const result = await db.query(query, [
       user.buyer_name,
       user.user_name,
+      user.phone_number,
+      user.license_state,
+      user.license_number,
       user.profile_image,
 
       user_id,

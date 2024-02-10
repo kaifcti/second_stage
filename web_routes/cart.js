@@ -8,11 +8,14 @@ router.get("/getCartData", auth, web_cartController.getCartByUserId);
 router.post("/upDateCartData/:id", auth, web_cartController.editCart);
 router.delete("/deleteCartData/:id", auth, web_cartController.deleteCart);
 
+// for rent user
+router.post("/add_cart_rent", auth, web_cartController.addToRentCart);
+
 // wishlist functionality
 
 router.post("/add_wishlist",auth,web_cartController.add_product_wishlist);
 router.post("/get_wishlist",auth,  web_cartController.get_wishlist_by_id);
-router.delete("/remove_wishlist",auth,web_cartController.remove__wishlist)
+router.delete("/remove_wishlist/:product_id",auth,web_cartController.remove__wishlist)
 
 
 

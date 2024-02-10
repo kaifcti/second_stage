@@ -261,6 +261,18 @@ module.exports = {
     }
   },
 
+  checkWishlistBy_id: async (productId, userId) => {
+    return db.query(
+      `select * from product_wishlist where product_id='${productId}' and buyer_id='${userId}'`
+    );
+  },
+
+  checkWishlistBy_productId: async (productId) => {
+    return db.query(
+      `select * from product_wishlist where product_id='${productId}' `
+    );
+  },
+
   get__products: async () => {
     return db.query("SELECT * FROM product ORDER BY id DESC LIMIT 1; ");
   },
@@ -781,9 +793,205 @@ module.exports = {
 
   // fetch product ends here
 
+  // getAllProduct_filter: async (
+  //   product_brand,
+  //   product_category,
+  //   product_color,
+  //   size_top,
+  //   size_bottom,
+  //   style_top,
+  //   style_bottom,
+  //   billing_type,
+  //   billing_level,
+  //   billing_condition,
+  //   product_padding,
+  //   location,
+  //   price_sale_lend_price_max,
+  //   price_sale_lend_price_min,
+  //   price_sale_lend_price_max_rent,
+  //   price_sale_lend_price_min_rent,
+  //   product_replacement_price,
+  //   product_rental_period,
+  //   product_description,
+  //   product_buy_rent,
+  //   size_standard
+  // ) => {
+  //   let where = ""; // Default condition
+
+  //   if (product_brand !== undefined && product_brand !== ""  ) {
+  //     let newBrand = product_brand.replace(/\[|\]/g, "");
+  //     where = ` WHERE pb.product_brand IN(${newBrand})`;
+  //   }
+
+  //   if (product_category !== undefined && product_category !== "") {
+  //     let newCategory = product_category.replace(/\[|\]/g, "");
+  //     where += ` AND pc.product_category IN (${newCategory})`;
+  //   }
+
+  //   if (product_color !== undefined && product_color !== "") {
+  //     let newColor = product_color.replace(/\[|\]/g, "");
+  //     where += ` AND pco.product_color IN (${newColor})`;
+  //   }
+
+  //   if (size_top !== undefined && size_top !== "") {
+  //     let newSizeTop = size_top.replace(/\[|\]/g, "");
+  //     where += ` AND ps.size_top IN (${newSizeTop})`;
+  //   }
+
+  //   if (size_bottom !== undefined && size_bottom !== "") {
+  //     let newSizeBottom = size_bottom.replace(/\[|\]/g, "");
+  //     where += ` AND ps.size_bottom IN (${newSizeBottom})`;
+  //   }
+
+  //   if (style_top !== undefined && style_top !== "") {
+  //     let newStyleTop = style_top.replace(/\[|\]/g, "");
+  //     where += ` AND pst.style_top IN (${newStyleTop})`;
+  //   }
+
+  //   if (style_bottom !== undefined && style_bottom !== "") {
+  //     let newStyleBottom = style_bottom.replace(/\[|\]/g, "");
+  //     where += ` AND pst.style_bottom  IN (${newStyleBottom})`;
+  //   }
+
+  //   if (billing_type !== undefined && billing_type !== "") {
+  //     let newBillingType = billing_type.replace(/\[|\]/g, "");
+  //     where += ` AND pbi.billing_type IN (${newBillingType})`;
+  //   }
+  //   if (billing_level !== undefined && billing_level !== "") {
+  //     let newBillingLevel = billing_level.replace(/\[|\]/g, "");
+  //     where += ` AND pbi.billing_level IN (${newBillingLevel})`;
+  //   }
+  //   if (billing_condition !== undefined && billing_condition !== "") {
+  //     let newBillingCondition = billing_condition.replace(/\[|\]/g, "");
+  //     where += ` AND pbi.billing_condition IN (${newBillingCondition})`;
+  //   }
+
+  //   if (product_padding !== undefined && product_padding !== "") {
+  //     let newPadding = product_padding.replace(/\[|\]/g, "");
+  //     where += ` AND pp.product_padding IN (${newPadding})`;
+  //   }
+
+  //   if (location !== undefined && location !== "") {
+  //     let newLocation = location.replace(/\[|\]/g, "");
+  //     where += ` AND p.location IN (${newLocation})`;
+  //   }
+  //   if (
+  //     price_sale_lend_price_max !== undefined &&
+  //     price_sale_lend_price_max !== "" &&
+  //     price_sale_lend_price_min !== undefined &&
+  //     price_sale_lend_price_min !== ""
+  //   ) {
+  //     let newPrice_Max = price_sale_lend_price_max.replace(/\[|\]/g, "");
+  //     let newPrice_Min = price_sale_lend_price_min.replace(/\[|\]/g, "");
+  //     where += ` AND p.price_sale_lend_price BETWEEN ${newPrice_Max} AND ${newPrice_Min}  `;
+  //   }
+
+  //   if (
+  //     price_sale_lend_price_max_rent !== undefined &&
+  //     price_sale_lend_price_max_rent !== "" &&
+  //     price_sale_lend_price_min_rent !== undefined &&
+  //     price_sale_lend_price_min_rent !== ""
+  //   ) {
+  //     let newPrice_Max_rent = price_sale_lend_price_max_rent.replace(
+  //       /\[|\]/g,
+  //       ""
+  //     );
+  //     let newPrice_Min_rent = price_sale_lend_price_min_rent.replace(
+  //       /\[|\]/g,
+  //       ""
+  //     );
+  //     where += ` AND p.price_sale_lend_price BETWEEN ${newPrice_Max_rent} AND ${newPrice_Min_rent}  `;
+  //   }
+
+  //   if (
+  //     product_replacement_price !== undefined &&
+  //     product_replacement_price !== ""
+  //   ) {
+  //     let newReplacementPrice = product_replacement_price.replace(/\[|\]/g, "");
+  //     where += ` AND p.product_replacement_price IN (${newReplacementPrice})`;
+  //   }
+  //   if (product_rental_period !== undefined && product_rental_period !== "") {
+  //     let newrentalPeriod = product_rental_period.replace(/\[|\]/g, "");
+  //     where += ` AND p.product_rental_period IN (${newrentalPeriod})`;
+  //   }
+  //   if (product_description !== undefined && product_description !== "") {
+  //     let newDescription = product_description.replace(/\[|\]/g, "");
+  //     where += ` AND p.product_description IN (${newDescription})`;
+  //   }
+
+  //   if (product_buy_rent !== undefined && product_buy_rent !== "") {
+  //     let newBuyRent = product_buy_rent.replace(/\[|\]/g, "");
+  //     where += ` AND p.product_buy_rent IN (${newBuyRent})`;
+  //   }
+
+  //   if (size_standard !== undefined && size_standard !== "") {
+  //     let newSizeStandard = size_standard.replace(/\[|\]/g, "");
+  //     where += ` AND p.size_standard IN (${newSizeStandard})`;
+  //   }
+
+  //   const query = `
+  //     SELECT
+  //       p.id,
+  //       p.seller_id,
+  //       pb.product_brand,
+  //       pc.product_category,
+  //       pco.product_color,
+  //       ps.size_top,
+  //       ps.size_bottom,
+  //       p.size_standard,
+  //       pst.style_top,
+  //       pst.style_bottom,
+  //       pbi.billing_type,
+  //       pbi.billing_level,
+  //       pbi.billing_condition,
+  //       p.product_buy_rent,
+  //       pp.product_padding,
+  //       p.location,
+  //       p.price_sale_lend_price,
+  //       p.product_replacement_price,
+  //       p.product_rental_period,
+  //       p.product_description,
+  //       p.wishlist_like,
+  //       p.created_at,
+  //       p.updated_at,
+  //       GROUP_CONCAT(DISTINCT pcn.product_color) AS product_colors,
+  //       GROUP_CONCAT(DISTINCT pi.product_image) AS product_images
+  //     FROM
+  //       product p
+  //     LEFT JOIN
+  //       product_brands pb ON p.id = pb.product_id
+  //     LEFT JOIN
+  //       product_category pc ON p.id = pc.product_id
+  //     LEFT JOIN
+  //       product_colors pco ON p.id = pco.product_id
+
+  //     LEFT JOIN
+  //       product_size ps ON p.id = ps.product_id
+  //     LEFT JOIN
+  //       product_styles pst ON p.id = pst.product_id
+  //     LEFT JOIN
+  //       product_billing pbi ON p.id = pbi.product_id
+  //     LEFT JOIN
+  //       product_padding pp ON p.id = pp.product_id
+  //     LEFT JOIN
+  //       product_colors pcn ON p.id = pcn.product_id
+  //     LEFT JOIN
+  //       product_images pi ON p.id = pi.product_id
+  //     ${where}
+  //     GROUP BY
+  //       p.id
+  //     ORDER BY
+  //       p.id DESC
+  //   `;
+
+  //   console.log("Constructed Query:", query);
+  //   return db.query(query);
+  // },
+
   getAllProduct_filter: async (
     product_brand,
     product_category,
+    product_color,
     size_top,
     size_bottom,
     style_top,
@@ -793,66 +1001,137 @@ module.exports = {
     billing_condition,
     product_padding,
     location,
-    price_sale_lend_price,
+    price_sale_lend_price_max,
+    price_sale_lend_price_min,
+    price_sale_lend_price_max_rent,
+    price_sale_lend_price_min_rent,
     product_replacement_price,
     product_rental_period,
-    product_description
+    product_description,
+    product_buy_rent,
+    size_standard
   ) => {
     let where = ""; // Default condition
 
-    where = ` WHERE pb.product_brand = '${product_brand}'`;
-    if (product_category !== undefined && product_category !== "") {
-      where += ` AND pc.product_category = '${product_category}'`;
+    if (product_brand && product_brand.length > 0) {
+      let newBrand = product_brand.map((brand) => `'${brand}'`).join(",");
+      where = ` WHERE pb.product_brand IN (${newBrand})`;
     }
-    if (size_top !== undefined && size_top !== "") {
-      where += ` AND ps.size_top = '${size_top}'`;
+
+    if (product_category && product_category.length > 0) {
+      let newCategory = product_category
+        .map((category) => `'${category}'`)
+        .join(",");
+      where += ` AND pc.product_category IN (${newCategory})`;
     }
-    if (size_bottom !== undefined && size_bottom !== "") {
-      where += ` AND ps.size_bottom = '${size_bottom}'`;
+
+    if (product_color && product_color.length > 0) {
+      let newColor = product_color.map((color) => `'${color}'`).join(",");
+      where += ` AND pco.product_color IN (${newColor})`;
     }
-    if (style_top !== undefined && style_top !== "") {
-      where += ` AND pst.style_top = '${style_top}'`;
+
+    console.log(">>>>>>", size_top);
+    if (size_top && size_top.length !== 0) {
+      let newSizeTop = size_top.map((size) => `'${size}'`).join(",");
+      where += ` AND ps.size_top IN (${newSizeTop})`;
     }
-    if (style_bottom !== undefined && style_bottom !== "") {
-      where += ` AND pst.style_bottom = '${style_bottom}'`;
+
+    if (size_bottom && size_bottom.length > 0) {
+      let newSizeBottom = size_bottom.map((size) => `'${size}'`).join(",");
+      where += ` AND ps.size_bottom IN (${newSizeBottom})`;
     }
-    if (billing_type !== undefined && billing_type !== "") {
-      where += ` AND pbi.billing_type = '${billing_type}'`;
+
+    if (style_top && style_top.length > 0) {
+      let newStyleTop = style_top.map((style) => `'${style}'`).join(",");
+      where += ` AND pst.style_top IN (${newStyleTop})`;
     }
-    if (billing_level !== undefined && billing_level !== "") {
-      where += ` AND pbi.billing_level = '${billing_level}'`;
+
+    if (style_bottom && style_bottom.length > 0) {
+      let newStyleBottom = style_bottom.map((style) => `'${style}'`).join(",");
+      where += ` AND pst.style_bottom IN (${newStyleBottom})`;
     }
-    if (billing_condition !== undefined && billing_condition !== "") {
-      where += ` AND pbi.billing_condition = '${billing_condition}'`;
+
+    if (billing_type && billing_type.length > 0) {
+      let newBillingType = billing_type.map((type) => `'${type}'`).join(",");
+      where += ` AND pbi.billing_type IN (${newBillingType})`;
     }
-    if (product_padding !== undefined && product_padding !== "") {
-      where += ` AND pp.product_padding = '${product_padding}'`;
+
+    if (billing_level && billing_level.length > 0) {
+      let newBillingLevel = billing_level
+        .map((level) => `'${level}'`)
+        .join(",");
+      where += ` AND pbi.billing_level IN (${newBillingLevel})`;
     }
-    if (location !== undefined && location !== "") {
-      where += ` AND p.location = '${location}'`;
+
+    if (billing_condition && billing_condition.length > 0) {
+      let newBillingCondition = billing_condition
+        .map((condition) => `'${condition}'`)
+        .join(",");
+      where += ` AND pbi.billing_condition IN (${newBillingCondition})`;
     }
-    if (price_sale_lend_price !== undefined && price_sale_lend_price !== "") {
-      where += ` AND p.price_sale_lend_price = '${price_sale_lend_price}'`;
+
+    if (product_padding && product_padding.length > 0) {
+      let newPadding = product_padding
+        .map((padding) => `'${padding}'`)
+        .join(",");
+      where += ` AND pp.product_padding IN (${newPadding})`;
     }
-    if (
-      product_replacement_price !== undefined &&
-      product_replacement_price !== ""
-    ) {
-      where += ` AND p.product_replacement_price = '${product_replacement_price}'`;
+
+    if (location && location.length > 0) {
+      let newLocation = location.map((loc) => `'${loc}'`).join(",");
+      where += ` AND p.location IN (${newLocation})`;
     }
-    if (product_rental_period !== undefined && product_rental_period !== "") {
-      where += ` AND p.product_rental_period = '${product_rental_period}'`;
+
+    if (price_sale_lend_price_max && price_sale_lend_price_min) {
+      where += ` AND p.price_sale_lend_price BETWEEN ${price_sale_lend_price_max} AND ${price_sale_lend_price_min}`;
     }
-    if (product_description !== undefined && product_description !== "") {
-      where += ` AND p.product_description LIKE '%${product_description}%'`;
+
+    if (price_sale_lend_price_max_rent && price_sale_lend_price_min_rent) {
+      where += ` AND p.price_sale_lend_price BETWEEN ${price_sale_lend_price_max_rent} AND ${price_sale_lend_price_min_rent}`;
+    }
+
+    if (product_replacement_price && product_replacement_price.length > 0) {
+      let newReplacementPrice = product_replacement_price
+        .map((price) => `'${price}'`)
+        .join(",");
+      where += ` AND p.product_replacement_price IN (${newReplacementPrice})`;
+    }
+
+    if (product_rental_period && product_rental_period.length > 0) {
+      let newRentalPeriod = product_rental_period
+        .map((period) => `'${period}'`)
+        .join(",");
+      where += ` AND p.product_rental_period IN (${newRentalPeriod})`;
+    }
+
+    if (product_description && product_description.length > 0) {
+      let newDescription = product_description
+        .map((desc) => `'${desc}'`)
+        .join(",");
+      where += ` AND p.product_description IN (${newDescription})`;
+    }
+
+    if (product_buy_rent && product_buy_rent.length > 0) {
+      let newBuyRent = product_buy_rent
+        .map((buyrent) => `'${buyrent}'`)
+        .join(",");
+      where += ` AND p.product_buy_rent IN (${newBuyRent})`;
+    }
+
+    if (size_standard && size_standard.length > 0) {
+      let newSizeStandard = size_standard
+        .map((standard) => `'${standard}'`)
+        .join(",");
+      where += ` AND p.size_standard IN (${newSizeStandard})`;
     }
 
     const query = `
-      SELECT 
+      SELECT
         p.id,
         p.seller_id,
         pb.product_brand,
         pc.product_category,
+        pco.product_color,
         ps.size_top,
         ps.size_bottom,
         p.size_standard,
@@ -868,32 +1147,35 @@ module.exports = {
         p.product_replacement_price,
         p.product_rental_period,
         p.product_description,
+        p.wishlist_like,
         p.created_at,
         p.updated_at,
         GROUP_CONCAT(DISTINCT pcn.product_color) AS product_colors,
         GROUP_CONCAT(DISTINCT pi.product_image) AS product_images
-      FROM 
+      FROM
         product p
-      LEFT JOIN 
+      LEFT JOIN
         product_brands pb ON p.id = pb.product_id
-      LEFT JOIN 
+      LEFT JOIN
         product_category pc ON p.id = pc.product_id
-      LEFT JOIN 
+      LEFT JOIN
+        product_colors pco ON p.id = pco.product_id
+      LEFT JOIN
         product_size ps ON p.id = ps.product_id
-      LEFT JOIN 
+      LEFT JOIN
         product_styles pst ON p.id = pst.product_id
-      LEFT JOIN 
+      LEFT JOIN
         product_billing pbi ON p.id = pbi.product_id
-      LEFT JOIN 
+      LEFT JOIN
         product_padding pp ON p.id = pp.product_id
-      LEFT JOIN 
+      LEFT JOIN
         product_colors pcn ON p.id = pcn.product_id
-      LEFT JOIN 
+      LEFT JOIN
         product_images pi ON p.id = pi.product_id
       ${where}
-      GROUP BY 
+      GROUP BY
         p.id
-      ORDER BY 
+      ORDER BY
         p.id DESC
     `;
 
@@ -901,43 +1183,90 @@ module.exports = {
     return db.query(query);
   },
 
+  // getAllProduct_by_category: async (productCategory) => {
+  //   try {
+  //     const params = [productCategory];
+  //     const sql = `
+  //       SELECT
+  //       p.id,
+
+  //         pc.product_category,
+  //         p.size_standard,
+  //         p.product_buy_rent,
+  //         p.location,
+  //         p.price_sale_lend_price,
+  //         p.product_replacement_price,
+  //         p.product_rental_period,
+  //         p.product_description,
+  //         p.wishlist_like,
+  //         ps.size_top,
+  //         ps.size_bottom,
+  //         pst.style_top,
+  //         pst.style_bottom,
+  //         pb.product_brand,
+  //         pbi.billing_type,
+  //         pbi.billing_level,
+  //         pbi.billing_condition,
+  //         pp.product_padding,
+  //         CONCAT('${baseurl}/productImage/', pi.product_image) as product_image,
+  //         pcn.product_color
+  //       FROM Product p
+  //         LEFT JOIN product_size ps ON p.id = ps.product_id
+  //         LEFT JOIN product_styles pst ON p.id = pst.product_id
+  //         LEFT JOIN product_brands pb ON p.id = pb.product_id
+  //         LEFT JOIN product_billing pbi ON p.id = pbi.product_id
+  //         LEFT JOIN product_padding pp ON p.id = pp.product_id
+  //         LEFT JOIN product_category pc ON p.id = pc.product_id
+  //         LEFT JOIN product_images pi ON p.id = pi.product_id
+  //         LEFT JOIN product_colors pcn ON p.id = pcn.product_id
+  //       WHERE pc.product_category = ?;
+  //     `;
+
+  //     // Execute the query
+  //     const result = await db.query(sql, params);
+
+  //     return result;
+  //   } catch (error) {
+  //     console.error("Error in getAllProductByCategory:", error);
+  //     throw error;
+  //   }
+  // },
+
   getAllProduct_by_category: async (productCategory) => {
     try {
       const params = [productCategory];
       const sql = `
-        SELECT 
-        p.id,
-        
-          pc.product_category,
-          p.size_standard,
-          p.product_buy_rent,
-          p.location,
-          p.price_sale_lend_price,
-          p.product_replacement_price,
-          p.product_rental_period,
-          p.product_description,
-          p.wishlist_like,
-          ps.size_top,
-          ps.size_bottom,
-          pst.style_top,
-          pst.style_bottom,
-          pb.product_brand,
-          pbi.billing_type,
-          pbi.billing_level,
-          pbi.billing_condition,
-          pp.product_padding,
-          CONCAT('${baseurl}/productImage/', pi.product_image) as product_image,
-          pcn.product_color
-        FROM Product p
-          LEFT JOIN product_size ps ON p.id = ps.product_id
-          LEFT JOIN product_styles pst ON p.id = pst.product_id
-          LEFT JOIN product_brands pb ON p.id = pb.product_id
-          LEFT JOIN product_billing pbi ON p.id = pbi.product_id
-          LEFT JOIN product_padding pp ON p.id = pp.product_id
-          LEFT JOIN product_category pc ON p.id = pc.product_id
-          LEFT JOIN product_images pi ON p.id = pi.product_id
-          LEFT JOIN product_colors pcn ON p.id = pcn.product_id
-        WHERE pc.product_category = ?;
+      SELECT
+    product.id,
+    product.location,
+    product.product_buy_rent,
+    product.price_sale_lend_price,
+    product.product_replacement_price,
+    product.product_rental_period,
+    product.product_description,
+    product.wishlist_like,
+    CONCAT('${baseurl}/productImage/', product_images.product_image) AS product_image,
+    product_colors.product_color AS product_colors,
+    product_brands.product_brand AS product_brands,
+    product_styles.style_top AS style_top,
+    product_styles.style_bottom AS style_bottom,
+    product_size.size_top AS size_top,
+    product_size.size_bottom AS size_bottom,
+    product_billing.billing_type AS billing_type,
+    product_billing.billing_level AS billing_level,
+    product_billing.billing_condition AS billing_condition,
+    product_category.product_category AS product_category,
+    product_padding.product_padding AS product_padding
+FROM product
+LEFT JOIN product_images ON product.id = product_images.product_id
+LEFT JOIN product_colors ON product.id = product_colors.product_id
+LEFT JOIN product_brands ON product.id = product_brands.product_id
+LEFT JOIN product_styles ON product.id = product_styles.product_id
+LEFT JOIN product_size ON product.id = product_size.product_id
+LEFT JOIN product_billing ON product.id = product_billing.product_id
+LEFT JOIN product_category ON product.id = product_category.product_id
+LEFT JOIN product_padding ON product.id = product_padding.product_id
+WHERE product_category.product_category = ?;
       `;
 
       // Execute the query

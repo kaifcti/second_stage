@@ -35,7 +35,7 @@ app.get("/", (req, res) => {
   res.setHeader(
     "Access-Control-Allow-Origin",
     "*",
-    "http://192.168.1.20:9000",
+    "http://192.168.1.33:4005",
     {
       reconnect: true,
     }

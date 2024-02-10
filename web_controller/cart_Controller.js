@@ -28,7 +28,8 @@ const {
   check_product_in_wishlist,
   remove_from_wishlist,
   updateWishListLike,
-  removeWishListLike,
+  removeWishListLikeCount,
+  updateCartCount,
   add_text,
   fetch_text,
   delete_text,
@@ -129,7 +130,7 @@ exports.addTocart = async (req, res) => {
       });
     }
 
-    const { product_id,cart_quantity } = req.body;
+    const { product_id, cart_quantity } = req.body;
     console.log("product_id ==>>>", product_id);
 
     // Check if buyer and product exist
@@ -155,6 +156,10 @@ exports.addTocart = async (req, res) => {
       });
     }
 
+    // if (existingitem.length !== 0) {
+    //   const updateCartQuantity = await updateCartCount(product_id, userId);
+    // }
+
     // Fetch product details by product ID
     const productDetails = await checkProductExistence(product_id);
 
@@ -176,13 +181,15 @@ exports.addTocart = async (req, res) => {
       });
     }
 
+    // Set cart_quantity to 1 if not provided by the user
+    const defaultCartQuantity = cart_quantity ? cart_quantity : 1;
+
     // Add the item to the cart
     const cartData = {
       product_id,
       buyer_id: userId,
       cart_price,
-      cart_quantity
-      
+      cart_quantity: defaultCartQuantity,
     };
 
     const addCart = await createCart(cartData);
@@ -204,68 +211,6 @@ exports.addTocart = async (req, res) => {
     });
   }
 };
-
-// exports.getCartByUserIddd = async (req, res) => {
-//   try {
-//     const userID = req?.user;
-
-//     const wishListDetails = await getCartById(userID);
-
-//     if (wishListDetails && wishListDetails.length > 0) {
-//       const updatedCombinedCart = wishListDetails.map((item) => {
-//         const {
-//           product_image,
-//           product_color,
-//           product_brand,
-//           style_top,
-//           style_bottom,
-//           size_top,
-//           size_bottom,
-//           billing_type,
-//           billing_level,
-//           billing_condition,
-//           product_category,
-//           product_padding,
-//           ...rest
-//         } = item;
-
-//         return {
-//           ...rest,
-//           cart_price: item.price_sale_lend_price * item.cart_quantity,
-//           product_images: [product_image],
-//           product_colors: product_color.split(",").map((color) => color.trim()),
-//           product_brands: [product_brand],
-//           product_styles: [style_top, style_bottom],
-//           product_size: [size_top, size_bottom],
-//           product_billing: [billing_type, billing_level, billing_condition],
-//           product_category: [product_category],
-//           product_padding: [product_padding],
-//         };
-//       });
-
-//       return res.json({
-//         message: "All cart items",
-//         status: 200,
-//         success: true,
-//         cart: updatedCombinedCart,
-//       });
-//     } else {
-//       return res.json({
-//         message: "No data found",
-//         status: 200,
-//         success: false,
-//       });
-//     }
-//   } catch (error) {
-//     console.error(error);
-//     return res.json({
-//       success: false,
-//       message: "Internal server error",
-//       status: 500,
-//       error: error.message || "Unknown error",
-//     });
-//   }
-// };
 
 exports.getCartByUserId = async (req, res) => {
   try {
@@ -506,6 +451,319 @@ exports.deleteCart = async (req, res) => {
   }
 };
 
+// for rent user
+
+// exports.addToRentCart = async (req, res) => {
+//   try {
+//     const authHeader = req.headers.authorization;
+//     const token_1 = authHeader;
+//     const token = token_1.replace("Bearer ", "");
+//     const decoded = jwt.decode(token);
+//     const userId = decoded.data.id;
+
+//     const userData = await fetchBuyerBy_Id(userId);
+//     console.log("userData==>>>", userData);
+
+//     if (userData.length === 0) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "User not found",
+//       });
+//     }
+
+//     const { product_id, cart_quantity, start_date, end_date } = req.body;
+//     console.log("product_id ==>>>", product_id);
+
+//     // Check if buyer and product exist
+//     const buyerExists = await checkBuyerExistence(userId);
+//     console.log("buyerExists==>>>", buyerExists);
+//     const productExists = await checkProductExistence(product_id);
+//     console.log("productExists==>>>", productExists);
+
+//     if (buyerExists.length === 0 || productExists.length === 0) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Buyer or product not found",
+//       });
+//     }
+
+//     // Check if the item is already present in the cart
+//     const existingItem = await getCartByProductIdAndBuyerId(product_id, userId);
+
+//     if (existingItem.length !== 0) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Item already in the cart",
+//       });
+//     }
+
+//     // Fetch product details by product ID
+//     const productDetails = await checkProductExistence(product_id);
+
+//     if (!productDetails || isNaN(productDetails[0].price_sale_lend_price)) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Invalid product details or price",
+//       });
+//     }
+
+//     // Check if product is available for rent
+//     if (productDetails[0].product_buy_rent !== "rent") {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Product is not available for rent",
+//       });
+//     }
+
+//     // Assuming cart_price is the price per item in the cart
+//     const cart_price = parseFloat(productDetails[0].price_sale_lend_price);
+//     console.log("cart_price==>>>", cart_price);
+
+//     if (isNaN(cart_price)) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Invalid price",
+//       });
+//     }
+
+//     // Add the item to the cart
+//     const cartData = {
+//       product_id,
+//       buyer_id: userId,
+//       cart_price,
+//       cart_quantity,
+//       start_date,
+//       end_date,
+//     };
+
+//     const addCart = await createCart(cartData);
+
+//     // Retrieve the updated cart
+//     const updatedCart = await get__cart();
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "Item added to the rent cart successfully",
+//       data: updatedCart,
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "An internal server error occurred. Please try again later.",
+//       error: error.message,
+//     });
+//   }
+// };
+
+// exports.addToRentCart = async (req, res) => {
+//   try {
+//     const authHeader = req.headers.authorization;
+//     const token_1 = authHeader;
+//     const token = token_1.replace("Bearer ", "");
+//     const decoded = jwt.decode(token);
+//     const userId = decoded.data.id;
+
+//     const userData = await fetchBuyerBy_Id(userId);
+//     console.log("userData==>>>", userData);
+
+//     if (userData.length === 0) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "User not found",
+//       });
+//     }
+
+//     let { product_id, cart_quantity,start_date,end_date } = req.body;
+//     console.log("product_id ==>>>", product_id);
+
+//     // Check if buyer and product exist
+//     const buyerExists = await checkBuyerExistence(userId);
+//     console.log("buyerExists==>>>", buyerExists);
+//     const productExists = await checkProductExistence(product_id);
+//     console.log("productExists==>>>", productExists);
+
+//     if (buyerExists.length === 0 || productExists.length === 0) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Buyer or product not found",
+//       });
+//     }
+
+//     // Check if the item is already present in the cart
+//     const existingItem = await getCartByProductIdAndBuyerId(product_id, userId);
+
+//     if (existingItem.length !== 0) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Item already in the cart",
+//       });
+//     }
+
+//     // Fetch product details by product ID
+//     const productDetails = await checkProductExistence(product_id);
+
+//     if (!productDetails || isNaN(productDetails[0].price_sale_lend_price)) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Invalid product details or price",
+//       });
+//     }
+
+//     // Check if product is available for rent
+//     if (productDetails[0].product_buy_rent !== "rent") {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Product is not available for rent",
+//       });
+//     }
+
+//     // Calculate rent price based on extended days
+//     const { price_sale_lend_price } = productDetails[0];
+//     let rent_price = parseFloat(price_sale_lend_price);
+
+//      start_date = new Date(start_date);
+//      end_date = new Date(end_date);
+//     const daysDiff = Math.ceil((end_date - start_date) / (1000 * 60 * 60 * 24));
+//     rent_price *= daysDiff;
+
+//     // Add the item to the cart
+//     const cartData = {
+//       product_id,
+//       buyer_id: userId,
+//       cart_price: rent_price,
+//       cart_quantity,
+//       start_date,
+//       end_date,
+//     };
+
+//     const addCart = await createCart(cartData);
+
+//     // Retrieve the updated cart
+//     const updatedCart = await get__cart();
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "Item added to the rent cart successfully",
+//       data: updatedCart,
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "An internal server error occurred. Please try again later.",
+//       error: error.message,
+//     });
+//   }
+// };
+
+exports.addToRentCart = async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    const token_1 = authHeader;
+    const token = token_1.replace("Bearer ", "");
+    const decoded = jwt.decode(token);
+    const userId = decoded.data.id;
+
+    const userData = await fetchBuyerBy_Id(userId);
+    console.log("userData==>>>", userData);
+
+    if (userData.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    let { product_id, cart_quantity, start_date, end_date } = req.body;
+    console.log("product_id ==>>>", product_id);
+
+    // Check if buyer and product exist
+    const buyerExists = await checkBuyerExistence(userId);
+    console.log("buyerExists==>>>", buyerExists);
+    const productExists = await checkProductExistence(product_id);
+    console.log("productExists==>>>", productExists);
+
+    if (buyerExists.length === 0 || productExists.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Buyer or product not found",
+      });
+    }
+
+    // Check if the item is already present in the cart
+    const existingItem = await getCartByProductIdAndBuyerId(product_id, userId);
+
+    if (existingItem.length !== 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Item already in the cart",
+      });
+    }
+
+    // Fetch product details by product ID
+    const productDetails = await checkProductExistence(product_id);
+
+    if (!productDetails || isNaN(productDetails[0].price_sale_lend_price)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid product details or price",
+      });
+    }
+
+    // Check if product is available for rent
+    if (productDetails[0].product_buy_rent !== "rent") {
+      return res.status(400).json({
+        success: false,
+        message: "Product is not available for rent",
+      });
+    }
+
+    // Calculate rent price based on rental period
+    const { price_sale_lend_price, product_rental_period } = productDetails[0];
+    let rent_price = parseFloat(price_sale_lend_price);
+
+    const startDate = new Date(start_date);
+    const endDate = new Date(end_date);
+    const daysDiff = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+
+    if (daysDiff > product_rental_period) {
+      // Calculate additional days
+      const additionalDays = daysDiff - product_rental_period;
+      // Adjust rent price for additional days
+      rent_price += additionalDays * (rent_price / product_rental_period);
+    }
+
+    // Add the item to the cart
+    const cartData = {
+      product_id,
+      buyer_id: userId,
+      cart_price: rent_price,
+      cart_quantity,
+      start_date,
+      end_date,
+    };
+
+    const addCart = await createCart(cartData);
+
+    // Retrieve the updated cart
+    const updatedCart = await get__cart();
+
+    return res.status(200).json({
+      success: true,
+      message: "Item added to the rent cart successfully",
+      data: updatedCart,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "An internal server error occurred. Please try again later.",
+      error: error.message,
+    });
+  }
+};
+
 // wishlist functionality
 
 exports.add_product_wishlist = async (req, res) => {
@@ -522,8 +780,8 @@ exports.add_product_wishlist = async (req, res) => {
 
     if (isProductInWishlist.length > 0) {
       // Product is already in the wishlist, so remove it
-      result = await remove_from_wishlist(product_id);
-      result = await removeWishListLike(product_id);
+      result = await remove_from_wishlist(buyer_id, product_id);
+      result = await removeWishListLikeCount(product_id);
       return res.json({
         success: true,
         message: "Item removed successfully to wishlist.",
@@ -564,7 +822,6 @@ exports.add_product_wishlist = async (req, res) => {
     });
   }
 };
-
 
 exports.get_wishlist_by_id = async (req, res) => {
   try {
@@ -631,8 +888,9 @@ exports.get_wishlist_by_id = async (req, res) => {
 exports.remove__wishlist = async (req, res) => {
   try {
     const buyer_id = req.user;
+    const product_id = req.params.product_id;
 
-    deleteWishList = await remove_from_wishlist(buyer_id);
+    deleteWishList = await remove_from_wishlist(buyer_id, product_id);
 
     if (deleteWishList) {
       return res.json({

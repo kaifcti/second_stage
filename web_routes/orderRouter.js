@@ -10,9 +10,13 @@ router.post(
   auth,
   orderController.order_shipping_details
 );
+router.get(
+  "/fetch_shipping_details",
+  auth,
+  orderController.get_shipping_details
+);
+
 router.post("/add_checkout", auth, orderController.order_checkout);
 router.get("/fetch_checkout", auth, orderController.get_checkout);
-
-
 
 module.exports = router;

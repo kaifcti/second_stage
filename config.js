@@ -1,5 +1,5 @@
 module.exports = {
-  base_url: "http://192.168.1.140:4005",
+  base_url: "http://192.168.1.33:4005",
   // APPLICATION_KEY: "2bb3c260-444a-4a73-81b5-d44ed441ce8c",
   // APPLICATION_SECRET: "4Hd96e/ykkKlV1IxjpZrTQ==",
   // APPLICATION_KEY: "d84a70dd-2a0f-4ea1-bdf3-3291398f657b",

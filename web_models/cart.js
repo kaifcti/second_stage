@@ -90,7 +90,7 @@ module.exports = {
     return db.query(`select * FROM tbl_buyer WHERE id = '${buyer_id}';
    `);
   },
-  
+
   checkProductExistence: async (product_id) => {
     return db.query(`select * FROM product WHERE id = '${product_id}';
    `);
@@ -104,6 +104,13 @@ module.exports = {
     return db.query(`select * FROM cart WHERE product_id = "${product_id}" AND buyer_id = "${buyer_id}";
    `);
   },
+
+
+  updateCartCount: async (product_id, buyer_id) => {
+    return db.query(`update cart set cart_quantity = cart_quantity +1 WHERE product_id = "${product_id}" AND buyer_id = "${buyer_id}";
+   `);
+  },
+
 
   deleteCartByProductIdAndBuyerId: async (product_id, buyer_id) => {
     return db.query(`delete FROM cart WHERE product_id = "${product_id}" AND buyer_id = "${buyer_id}";
@@ -389,10 +396,10 @@ GROUP BY cart.product_id;
   `);
   },
 
-  remove_from_wishlist: async (product_id) => {
+  remove_from_wishlist: async (buyer_id, product_id) => {
     return db.query(`
     DELETE FROM product_wishlist
-    WHERE product_id = '${product_id}' 
+    WHERE buyer_id='${buyer_id}' and product_id = '${product_id}' 
   `);
   },
 
@@ -402,7 +409,7 @@ GROUP BY cart.product_id;
     );
   },
 
-  removeWishListLike: async (product_id) => {
+  removeWishListLikeCount: async (product_id) => {
     return db.query(
       `UPDATE product SET wishlist_like=0   WHERE id='${product_id}'`
     );
