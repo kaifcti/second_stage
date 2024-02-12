@@ -18,18 +18,21 @@ router.post(
   auth,
   web_userController.changePasswordBuyer
 );
-router.post("/reset_password/buyer", web_userController.resetPassword_buyer);
+router.post(
+  "/reset_password/buyer",
+  web_userController.resetPassword_buyer
+);
 router.get(
   "/verifyPassword/buyer/:token",
   web_userController.verifyPasswordBuyer
 );
 
 router.post(
-  "/editProfile/buyer",auth,
+  "/editProfile/buyer",
+  auth,
   upload.single("profile_image"),
   web_userController.editProfileBuyer
 );
-
 
 router.get("/myProfile/buyer", auth, web_userController.myProfile);
 

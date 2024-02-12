@@ -5,7 +5,7 @@ const {
   fetchCartByUserId,
   fetchCartById,
   updateCartById,
-  deleteCartById,
+  deleteCartById,check_cart,
   fetchUserBy_Id,
   deleteCartByuserId,
   getCartByProductIdAndUserId,
@@ -112,6 +112,11 @@ const {
 //   }
 // };
 
+function generateRandomNumber(min, max) {
+  return Math.floor(Math.random() * (99999 - 10000 + 1)) + 10000;
+}
+
+
 exports.addTocart = async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
@@ -181,15 +186,17 @@ exports.addTocart = async (req, res) => {
       });
     }
 
+    var cart_number = generateRandomNumber(4, 6);
+    const checkCart = await check_cart(userId)
     // Set cart_quantity to 1 if not provided by the user
     const defaultCartQuantity = cart_quantity ? cart_quantity : 1;
-
     // Add the item to the cart
     const cartData = {
       product_id,
       buyer_id: userId,
       cart_price,
       cart_quantity: defaultCartQuantity,
+      cart_id: (checkCart.length != 0 ) ? checkCart[0].cart_id :cart_number 
     };
 
     const addCart = await createCart(cartData);
@@ -306,7 +313,7 @@ exports.editCart = async (req, res) => {
     const inputData = {
       product_id: req?.body?.product_id,
       cart_quantity: req?.body?.cart_quantity,
-      // buyer_id: buyer_id, // No need to include buyer_id, as it's already available in req.user
+    
     };
 
     const schema = Joi.object({

@@ -1523,19 +1523,20 @@ exports.get_all_filter_Product = async (req, res) => {
         size_top: Joi.array().items(Joi.string()).optional(),
         size_bottom: Joi.array().items(Joi.string()).optional(),
         style_top: Joi.array().items(Joi.string()).optional(),
+        style_bottom: Joi.array().items(Joi.string()).optional(),
         size_bottom: Joi.array().items(Joi.string()).optional(),
         billing_type: Joi.array().items(Joi.string()).optional(),
         billing_level: Joi.array().items(Joi.string()).optional(),
         billing_condition: Joi.array().items(Joi.string()).optional(),
         product_padding: Joi.array().items(Joi.string()).optional(),
         location: Joi.array().items(Joi.string()).optional(),
-        price_sale_lend_price_max: Joi.array().items(Joi.string()).optional(),
-        price_sale_lend_price_min: Joi.array().items(Joi.string()).optional(),
+        price_sale_lend_price_max: Joi.array().items().optional(),
+        price_sale_lend_price_min: Joi.array().items().optional(),
         price_sale_lend_price_max_rent: Joi.array()
-          .items(Joi.string())
+          .items()
           .optional(),
         price_sale_lend_price_min_rent: Joi.array()
-          .items(Joi.string())
+          .items()
           .optional(),
         product_replacement_price: Joi.array().items(Joi.string()).optional(),
         product_rental_period: Joi.array().items(Joi.string()).optional(),
@@ -1623,11 +1624,16 @@ exports.get_all_filter_Product = async (req, res) => {
           created_at: item.created_at,
           updated_at: item.updated_at,
           test: item.test,
-          product_colors: item.product_color.split(",").filter(Boolean),
+
+          product_colors: item.product_color
+            ? item.product_color.split(",").filter(Boolean)
+            : [],
           product_images: item.product_images
-            .split(",")
-            .map((image) => `${baseurl}/productImage/${image}`)
-            .filter(Boolean),
+            ? item.product_images
+                .split(",")
+                .map((image) => `${baseurl}/productImage/${image}`)
+                .filter(Boolean)
+            : [],
         };
       })
     );

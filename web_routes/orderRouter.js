@@ -18,5 +18,7 @@ router.get(
 
 router.post("/add_checkout", auth, orderController.order_checkout);
 router.get("/fetch_checkout", auth, orderController.get_checkout);
+router.get("/fetch_order", auth, orderController.fetch_order);
+router.get("/order_list", auth, orderController.order_list);
 
 module.exports = router;

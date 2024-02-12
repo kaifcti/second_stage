@@ -28,7 +28,11 @@ router.get(
   productController.getProductDetails_by_Category
 );
 
-router.get("/filterAllProduct", auth, productController.get_all_filter_Product);
+router.post(
+  "/filterAllProduct",
+  auth,
+  productController.get_all_filter_Product
+);
 router.post("/fetch_categories", productController.fetchProCategories);
 
 //***********product code for router kaif end****************

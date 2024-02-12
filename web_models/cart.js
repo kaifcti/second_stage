@@ -47,12 +47,13 @@ module.exports = {
     `;
     return (result = await db.query(sql, [userId]));
   },
-  fetchCartById: async (id) => {
-    return db.query(" select * from cart where id= ?", [id]);
+  fetchCartById: async (cartId) => {
+    return db.query(`select * from cart where cart_id= '${cartId}'`);
   },
 
   updateCartById: async (data, CartId) => {
-    const query = "UPDATE Cart SET cart_quantity=?, cart_price=?  WHERE id=?";
+    const query =
+      "UPDATE Cart SET cart_quantity=?, cart_price=?  WHERE cart_id=?";
     const result = await db.query(query, [
       data.cart_quantity,
       data.cart_price,
@@ -105,12 +106,10 @@ module.exports = {
    `);
   },
 
-
   updateCartCount: async (product_id, buyer_id) => {
     return db.query(`update cart set cart_quantity = cart_quantity +1 WHERE product_id = "${product_id}" AND buyer_id = "${buyer_id}";
    `);
   },
-
 
   deleteCartByProductIdAndBuyerId: async (product_id, buyer_id) => {
     return db.query(`delete FROM cart WHERE product_id = "${product_id}" AND buyer_id = "${buyer_id}";
@@ -179,7 +178,8 @@ module.exports = {
     try {
       const sql = `
     SELECT
-cart.id AS cart_id,
+    cart.id AS new_cart_id,
+cart.cart_id AS cart_id,
 cart.product_id,
 cart.buyer_id,
 cart.cart_quantity,
@@ -426,5 +426,9 @@ GROUP BY cart.product_id;
 
   delete_text: async (user_id) => {
     return db.query(`delete from text_message where user_id='${user_id}' `);
+  },
+
+  check_cart: async (userId) => {
+    return db.query(`SELECT * FROM cart where buyer_id='${userId}' `);
   },
 };

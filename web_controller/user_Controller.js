@@ -9,6 +9,7 @@ const fs = require("fs");
 require("moment-timezone");
 const config = require("../config");
 const baseurl = config.base_url;
+const baseUrl_profile_image = config.base_url_profile_image;
 
 const {
   registerUser,
@@ -912,7 +913,7 @@ exports.editProfileBuyer = async (req, res) => {
       }
 
       let profile_image = filename;
-      profile_image = baseurl + "ProfileImages/" + profile_image;
+      profile_image = baseUrl_profile_image + profile_image;
 
       console.log("profile_image 2058 ==>>", profile_image);
       const userData = {
